@@ -4,6 +4,7 @@ import { SkeletonTable } from '../../components/common/SkeletonLoader'
 import { useAuth } from '../../contexts/AuthContext'
 import { useDonationsByOng } from '../../hooks/useDonations'
 import { formatCurrency, formatDate } from '../../utils/formatters'
+import { doacaoContabilizada, statusKey, statusLabel, statusStyle } from '../../utils/donationStatus'
 
 const TIPO_LABELS: Record<string, string> = {
   FINANCEIRA: 'Financeira',
@@ -12,15 +13,6 @@ const TIPO_LABELS: Record<string, string> = {
   material: 'Material',
   SERVICO: 'Serviço',
   servico: 'Serviço',
-}
-
-const STATUS_STYLE: Record<string, { bg: string; color: string }> = {
-  CONFIRMADA: { bg: 'rgba(67,217,162,0.15)', color: '#43D9A2' },
-  confirmada: { bg: 'rgba(67,217,162,0.15)', color: '#43D9A2' },
-  PENDENTE:   { bg: 'rgba(255,209,102,0.15)', color: '#FFD166' },
-  pendente:   { bg: 'rgba(255,209,102,0.15)', color: '#FFD166' },
-  CANCELADA:  { bg: 'rgba(255,101,132,0.15)', color: '#FF6584' },
-  cancelada:  { bg: 'rgba(255,101,132,0.15)', color: '#FF6584' },
 }
 
 export function OngDonationsPage() {
@@ -40,16 +32,16 @@ export function OngDonationsPage() {
     })
   }, [doacoes, search, filtroTipo])
 
-  const totalArrecadado = doacoes.reduce((acc, d) => acc + d.valor, 0)
-  const totalConfirmadas = doacoes.filter((d) =>
-    (d.statusDoacao ?? '').toUpperCase() === 'CONFIRMADA'
-  ).length
-  const mediaValor = doacoes.length > 0 ? totalArrecadado / doacoes.length : 0
+  // pendente/expirada/cancelada não entra no dinheiro que a ONG realmente tem
+  const contabilizadas = doacoes.filter((d) => doacaoContabilizada(d.statusDoacao))
+  const totalArrecadado = contabilizadas.reduce((acc, d) => acc + d.valor, 0)
+  const aguardandoPagamento = doacoes.filter((d) => statusKey(d.statusDoacao) === 'pendente').length
+  const mediaValor = contabilizadas.length > 0 ? totalArrecadado / contabilizadas.length : 0
 
   const metrics = [
-    { label: 'Total Recebidas', value: doacoes.length, icon: 'bi-box-arrow-in-down', color: '#6C63FF', bg: 'rgba(108,99,255,0.1)' },
-    { label: 'Valor Total', value: formatCurrency(totalArrecadado), icon: 'bi-cash-stack', color: '#43D9A2', bg: 'rgba(67,217,162,0.1)' },
-    { label: 'Confirmadas', value: totalConfirmadas, icon: 'bi-check-circle', color: '#FFD166', bg: 'rgba(255,209,102,0.1)' },
+    { label: 'Total Recebidas', value: contabilizadas.length, icon: 'bi-box-arrow-in-down', color: '#6C63FF', bg: 'rgba(108,99,255,0.1)' },
+    { label: 'Valor Confirmado', value: formatCurrency(totalArrecadado), icon: 'bi-cash-stack', color: '#43D9A2', bg: 'rgba(67,217,162,0.1)' },
+    { label: 'Aguardando Pagamento', value: aguardandoPagamento, icon: 'bi-clock-history', color: '#FFD166', bg: 'rgba(255,209,102,0.1)' },
     { label: 'Média por Doação', value: formatCurrency(mediaValor), icon: 'bi-graph-up', color: '#FF6584', bg: 'rgba(255,101,132,0.1)' },
   ]
 
@@ -160,7 +152,7 @@ export function OngDonationsPage() {
               </thead>
               <tbody>
                 {filtered.map((d) => {
-                  const statusStyle = STATUS_STYLE[(d.statusDoacao ?? '').toUpperCase()] ?? { bg: 'rgba(136,146,176,0.15)', color: 'var(--text-muted)' }
+                  const badge = statusStyle(d.statusDoacao)
                   return (
                     <tr key={d.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
                       <td>
@@ -190,16 +182,22 @@ export function OngDonationsPage() {
                         </span>
                       </td>
                       <td>
-                        <span style={{ color: '#43D9A2', fontWeight: 700, fontSize: '0.9rem' }}>
+                        <span
+                          style={{
+                            color: doacaoContabilizada(d.statusDoacao) ? '#43D9A2' : 'var(--text-muted)',
+                            fontWeight: 700,
+                            fontSize: '0.9rem',
+                          }}
+                        >
                           {d.valor > 0 ? formatCurrency(d.valor) : '—'}
                         </span>
                       </td>
                       <td>
                         <span
                           className="px-2 py-1 rounded-2"
-                          style={{ background: statusStyle.bg, color: statusStyle.color, fontSize: '0.75rem', fontWeight: 600 }}
+                          style={{ background: badge.bg, color: badge.color, fontSize: '0.75rem', fontWeight: 600 }}
                         >
-                          {d.statusDoacao ?? '—'}
+                          {statusLabel(d.statusDoacao)}
                         </span>
                       </td>
                       <td>

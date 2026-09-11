@@ -1,4 +1,4 @@
-import api from './api'
+import api, { prefixUrl } from './api'
 import { Usuario, OngStats } from '../types/user.types'
 
 function mapOngToUsuario(o: any): Usuario {
@@ -9,12 +9,21 @@ function mapOngToUsuario(o: any): Usuario {
     role: 'ONG',
     telefone: o.telefone,
     cnpj: o.cnpj,
-    imagemUrl: o.imagemUrl,
+    // A API devolve o campo como logoUrl; sem isso o card caia sempre no
+    // avatar de inicial em vez de mostrar a logo da ONG.
+    imagemUrl: prefixUrl(o.logoUrl ?? o.imagemUrl),
     descricao: o.areaAtuacao,
     localizacao: o.localizacao || (o.cidade ? `${o.cidade}${o.estado ? ' - ' + o.estado : ''}` : undefined),
     site: o.site,
     chavePix: o.chavePix,
     createdAt: o.dataCadastro,
+    cep: o.cep,
+    endereco: o.endereco,
+    numero: o.numero,
+    complemento: o.complemento,
+    bairro: o.bairro,
+    cidade: o.cidade,
+    estado: o.estado,
   }
 }
 

@@ -6,20 +6,36 @@ import { Alert } from '../../components/common/Alert'
 import { ImageUpload } from '../../components/common/ImageUpload'
 import { useAuth } from '../../contexts/AuthContext'
 import { UsuarioService } from '../../services/UsuarioService'
+import { CepService } from '../../services/CepService'
 import { UsuarioUpdateRequest } from '../../types/user.types'
+import { formatarCep, googleMapsUrl, somenteDigitosCep } from '../../utils/endereco'
 
 export function OngProfilePage() {
   const { user, updateUser } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [isUploadingFoto, setIsUploadingFoto] = useState(false)
+  const [isBuscandoCep, setIsBuscandoCep] = useState(false)
+  const [cepErro, setCepErro] = useState<string | null>(null)
   const [alert, setAlert] = useState<{ type: 'success' | 'danger'; msg: string } | null>(null)
 
-  const { register, handleSubmit, reset } = useForm<UsuarioUpdateRequest>()
+  const { register, handleSubmit, reset, setValue, watch } = useForm<UsuarioUpdateRequest>()
+
+  const enderecoAtual = {
+    cep: watch('cep'),
+    endereco: watch('endereco'),
+    numero: watch('numero'),
+    complemento: watch('complemento'),
+    bairro: watch('bairro'),
+    cidade: watch('cidade'),
+    estado: watch('estado'),
+  }
+  const linkMapa = googleMapsUrl(enderecoAtual)
 
   useEffect(() => {
     if (!user) return
     UsuarioService.buscarPorId(user.id, user.role)
       .then((data) => {
+        updateUser({ imagemUrl: data.imagemUrl, nome: data.nome })
         reset({
           nome: data.nome,
           razaoSocial: data.razaoSocial,
@@ -28,6 +44,13 @@ export function OngProfilePage() {
           localizacao: data.localizacao,
           site: data.site,
           chavePix: data.chavePix,
+          cep: formatarCep(data.cep),
+          endereco: data.endereco,
+          numero: data.numero,
+          complemento: data.complemento,
+          bairro: data.bairro,
+          cidade: data.cidade,
+          estado: data.estado,
         })
       })
       .catch(() => {})
@@ -48,11 +71,49 @@ export function OngProfilePage() {
     }
   }
 
+  /** Preenche o endereco a partir do CEP digitado (ViaCEP). */
+  const handleBuscarCep = async () => {
+    const digitos = somenteDigitosCep(watch('cep') || '')
+    setCepErro(null)
+
+    if (digitos.length !== 8) {
+      setCepErro('Digite os 8 numeros do CEP.')
+      return
+    }
+
+    setIsBuscandoCep(true)
+    try {
+      const endereco = await CepService.buscar(digitos)
+      setValue('cep', formatarCep(endereco.cep))
+      setValue('endereco', endereco.endereco)
+      setValue('bairro', endereco.bairro)
+      setValue('cidade', endereco.cidade)
+      setValue('estado', endereco.estado)
+      // O complemento do ViaCEP costuma ser generico ("de 1 a 99"),
+      // entao so preenche quando a ONG ainda nao escreveu o dela.
+      if (endereco.complemento && !watch('complemento')) {
+        setValue('complemento', endereco.complemento)
+      }
+      // Mantem o campo antigo de localizacao coerente com o endereco novo.
+      if (endereco.cidade && endereco.estado) {
+        setValue('localizacao', `${endereco.cidade}, ${endereco.estado}`)
+      }
+    } catch (err) {
+      setCepErro(err instanceof Error ? err.message : 'Nao foi possivel buscar o CEP.')
+    } finally {
+      setIsBuscandoCep(false)
+    }
+  }
+
   const onSubmit = async (data: UsuarioUpdateRequest) => {
     if (!user) return
     setIsLoading(true)
     try {
-      await UsuarioService.atualizar(user.id, data, user.role)
+      await UsuarioService.atualizar(
+        user.id,
+        { ...data, cep: somenteDigitosCep(data.cep || '') },
+        user.role,
+      )
       updateUser({ nome: data.nome })
       setAlert({ type: 'success', msg: 'Perfil atualizado com sucesso!' })
     } catch {
@@ -115,6 +176,97 @@ export function OngProfilePage() {
                   <label className="form-label fw-semibold">Site</label>
                   <input {...register('site')} className="form-control form-control-custom" placeholder="https://..." />
                 </div>
+                <div className="col-12">
+                  <div className="p-3 rounded-3" style={{ background: 'rgba(108,99,255,0.07)', border: '1px solid rgba(108,99,255,0.25)' }}>
+                    <label className="form-label fw-semibold d-flex align-items-center gap-2">
+                      <i className="bi bi-geo-alt-fill" style={{ color: '#6C63FF' }} />
+                      Endereço da ONG
+                    </label>
+
+                    <div className="row g-3">
+                      <div className="col-md-5">
+                        <label className="form-label fw-semibold small">CEP</label>
+                        <div className="input-group">
+                          <input
+                            {...register('cep')}
+                            className="form-control form-control-custom"
+                            placeholder="00000-000"
+                            inputMode="numeric"
+                            maxLength={9}
+                            onChange={(e) => {
+                              setCepErro(null)
+                              setValue('cep', formatarCep(e.target.value))
+                            }}
+                            onBlur={() => {
+                              if (somenteDigitosCep(watch('cep') || '').length === 8) handleBuscarCep()
+                            }}
+                          />
+                          <button
+                            type="button"
+                            className="btn"
+                            onClick={handleBuscarCep}
+                            disabled={isBuscandoCep}
+                            style={{ background: 'rgba(108,99,255,0.18)', border: '1px solid rgba(108,99,255,0.35)', color: '#6C63FF', fontWeight: 600 }}
+                          >
+                            {isBuscandoCep
+                              ? <span className="spinner-border spinner-border-sm" />
+                              : <><i className="bi bi-search me-1" />Buscar</>}
+                          </button>
+                        </div>
+                        {cepErro && <div className="small mt-1 text-danger">{cepErro}</div>}
+                      </div>
+
+                      <div className="col-md-7">
+                        <label className="form-label fw-semibold small">Logradouro</label>
+                        <input {...register('endereco')} className="form-control form-control-custom" placeholder="Rua, avenida..." />
+                      </div>
+
+                      <div className="col-md-3">
+                        <label className="form-label fw-semibold small">Número</label>
+                        <input {...register('numero')} className="form-control form-control-custom" placeholder="123" />
+                      </div>
+
+                      <div className="col-md-4">
+                        <label className="form-label fw-semibold small">Complemento</label>
+                        <input {...register('complemento')} className="form-control form-control-custom" placeholder="Sala, bloco..." />
+                      </div>
+
+                      <div className="col-md-5">
+                        <label className="form-label fw-semibold small">Bairro</label>
+                        <input {...register('bairro')} className="form-control form-control-custom" placeholder="Bairro" />
+                      </div>
+
+                      <div className="col-md-9">
+                        <label className="form-label fw-semibold small">Cidade</label>
+                        <input {...register('cidade')} className="form-control form-control-custom" placeholder="Cidade" />
+                      </div>
+
+                      <div className="col-md-3">
+                        <label className="form-label fw-semibold small">UF</label>
+                        <input {...register('estado')} className="form-control form-control-custom" placeholder="SP" maxLength={2} />
+                      </div>
+                    </div>
+
+                    <div className="d-flex align-items-center justify-content-between gap-2 flex-wrap mt-3">
+                      <div className="small" style={{ color: 'var(--text-muted)' }}>
+                        Digite o CEP e clique em <strong>Buscar</strong> para preencher o endereço automaticamente.
+                        Ele aparece no seu card na página de ONGs.
+                      </div>
+                      {linkMapa && (
+                        <a
+                          href={linkMapa}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="btn btn-sm rounded-pill flex-shrink-0"
+                          style={{ background: 'rgba(108,99,255,0.18)', border: '1px solid rgba(108,99,255,0.35)', color: '#6C63FF', fontWeight: 600 }}
+                        >
+                          <i className="bi bi-map me-2" />Ver no mapa
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
                 <div className="col-12">
                   <div className="p-3 rounded-3" style={{ background: 'rgba(108,99,255,0.07)', border: '1px solid rgba(108,99,255,0.25)' }}>
                     <label className="form-label fw-semibold d-flex align-items-center gap-2">

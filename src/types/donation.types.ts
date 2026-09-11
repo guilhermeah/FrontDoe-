@@ -11,6 +11,9 @@ export interface Doacao {
   mensagem?: string
   anonimo?: boolean
   createdAt: string
+  /** Só vem preenchido enquanto a doação financeira está aguardando pagamento */
+  expiraEm?: string
+  segundosRestantes?: number
 }
 
 export interface Categoria {
