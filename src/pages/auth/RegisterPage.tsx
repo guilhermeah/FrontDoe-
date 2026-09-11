@@ -186,7 +186,14 @@ export function RegisterPage() {
                       <input
                         {...register('senha', {
                           required: 'Senha é obrigatória',
-                          minLength: { value: 6, message: 'Mínimo 6 caracteres' },
+                          validate: (v) => {
+                            if (v.length < 8) return 'Mínimo 8 caracteres'
+                            if (!/[A-Z]/.test(v)) return 'Precisa de ao menos uma letra maiúscula'
+                            if (!/[a-z]/.test(v)) return 'Precisa de ao menos uma letra minúscula'
+                            if (!/\d/.test(v)) return 'Precisa de ao menos um número'
+                            if (!/[@#$%^&+=!*()_\-]/.test(v)) return 'Precisa de ao menos um símbolo especial (@#$%...)'
+                            return true
+                          },
                         })}
                         type={showPassword ? 'text' : 'password'}
                         className="form-control form-control-custom"

@@ -3,20 +3,23 @@ import { SkeletonTable } from '../../components/common/SkeletonLoader'
 import { useAuth } from '../../contexts/AuthContext'
 import { useDonationsByDoador } from '../../hooks/useDonations'
 import { formatCurrency, formatDate } from '../../utils/formatters'
+import { doacaoContabilizada, statusLabel, statusStyle } from '../../utils/donationStatus'
 import { Link } from 'react-router-dom'
 
 export function DonationHistoryPage() {
   const { user } = useAuth()
   const { doacoes, isLoading } = useDonationsByDoador(user?.id)
 
-  const total = doacoes.reduce((acc, d) => acc + d.valor, 0)
+  // o total é o que foi efetivamente pago — pendente e expirada ficam de fora
+  const confirmadas = doacoes.filter((d) => doacaoContabilizada(d.statusDoacao))
+  const total = confirmadas.reduce((acc, d) => acc + d.valor, 0)
 
   return (
     <DashboardLayout title="Histórico de Doações">
       <div className="mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div>
           <h4 className="fw-black mb-1" style={{ color: 'var(--text)' }}>Histórico de Doações</h4>
-          <p style={{ color: 'var(--text-muted)' }}>{doacoes.length} doações realizadas • Total: <span style={{ color: '#43D9A2' }}>{formatCurrency(total)}</span></p>
+          <p style={{ color: 'var(--text-muted)' }}>{confirmadas.length} doações concluídas • Total: <span style={{ color: '#43D9A2' }}>{formatCurrency(total)}</span></p>
         </div>
         <Link to="/doador/campanhas" className="btn btn-primary-custom px-4">
           <i className="bi bi-heart me-2" />Fazer Doação
@@ -41,7 +44,7 @@ export function DonationHistoryPage() {
                   <th style={{ color: 'var(--text-muted)', fontWeight: 500, fontSize: '0.8rem' }}>Valor</th>
                   <th style={{ color: 'var(--text-muted)', fontWeight: 500, fontSize: '0.8rem' }}>Data</th>
                   <th style={{ color: 'var(--text-muted)', fontWeight: 500, fontSize: '0.8rem' }}>Mensagem</th>
-                  <th style={{ color: 'var(--text-muted)', fontWeight: 500, fontSize: '0.8rem' }}>Anônimo</th>
+                  <th style={{ color: 'var(--text-muted)', fontWeight: 500, fontSize: '0.8rem' }}>Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -61,7 +64,15 @@ export function DonationHistoryPage() {
                       </div>
                     </td>
                     <td>
-                      <span style={{ color: '#43D9A2', fontWeight: 700, fontSize: '0.9rem' }}>{formatCurrency(d.valor)}</span>
+                      <span
+                        style={{
+                          color: doacaoContabilizada(d.statusDoacao) ? '#43D9A2' : 'var(--text-muted)',
+                          fontWeight: 700,
+                          fontSize: '0.9rem',
+                        }}
+                      >
+                        {formatCurrency(d.valor)}
+                      </span>
                     </td>
                     <td>
                       <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>{formatDate(d.createdAt)}</span>
@@ -70,11 +81,18 @@ export function DonationHistoryPage() {
                       <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>{d.mensagem || '-'}</span>
                     </td>
                     <td>
-                      {d.anonimo ? (
-                        <span className="badge bg-secondary">Anônimo</span>
-                      ) : (
-                        <span className="badge bg-success bg-opacity-25 text-success">Público</span>
-                      )}
+                      <span
+                        className="px-2 py-1 rounded-2"
+                        style={{
+                          background: statusStyle(d.statusDoacao).bg,
+                          color: statusStyle(d.statusDoacao).color,
+                          fontSize: '0.75rem',
+                          fontWeight: 600,
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {statusLabel(d.statusDoacao)}
+                      </span>
                     </td>
                   </tr>
                 ))}
