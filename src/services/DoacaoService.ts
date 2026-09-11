@@ -15,6 +15,8 @@ function mapDoacao(raw: any): Doacao {
     mensagem: raw.observacoes,
     anonimo: false,
     createdAt: raw.dataDoacao ?? raw.createdAt ?? '',
+    expiraEm: raw.expiraEm ?? undefined,
+    segundosRestantes: raw.segundosRestantes ?? undefined,
   }
 }
 
@@ -88,9 +90,26 @@ export const DoacaoService = {
     }
   },
 
+  async buscarPorId(doacaoId: number): Promise<Doacao> {
+    const resp = await api.get<any>(`/doacoes/${doacaoId}`)
+    return mapDoacao(resp.data)
+  },
+
   async buscarPix(doacaoId: number): Promise<{ qrCodeBase64: string; pixCopiaECola: string }> {
     const resp = await api.get(`/pix/doacao/${doacaoId}`)
     return resp.data
+  },
+
+  /** Confirma o pagamento do PIX — é aqui que a doação entra no total da campanha. */
+  async confirmarPagamento(doacaoId: number): Promise<Doacao> {
+    const resp = await api.post<any>(`/doacoes/${doacaoId}/confirmar-pagamento`)
+    return mapDoacao(resp.data)
+  },
+
+  /** Marca a doação como expirada quando o contador do PIX zera. */
+  async expirar(doacaoId: number): Promise<Doacao> {
+    const resp = await api.post<any>(`/doacoes/${doacaoId}/expirar`)
+    return mapDoacao(resp.data)
   },
 
   async listarPorOng(ongId: number): Promise<Doacao[]> {

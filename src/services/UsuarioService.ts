@@ -28,6 +28,13 @@ function mapOngToUsuario(o: any): Usuario {
     razaoSocial: o.razaoSocial,
     chavePix: o.chavePix,
     createdAt: o.dataCadastro,
+    cep: o.cep,
+    endereco: o.endereco,
+    numero: o.numero,
+    complemento: o.complemento,
+    bairro: o.bairro,
+    cidade: o.cidade,
+    estado: o.estado,
   }
 }
 
@@ -60,6 +67,13 @@ export const UsuarioService = {
         localizacao: data.localizacao,
         site: data.site,
         chavePix: data.chavePix,
+        cep: data.cep,
+        endereco: data.endereco,
+        numero: data.numero,
+        complemento: data.complemento,
+        bairro: data.bairro,
+        cidade: data.cidade,
+        estado: data.estado,
       }
       const response = await api.put<any>(`/ongs/${id}`, payload)
       return mapOngToUsuario(response.data)

@@ -1,4 +1,4 @@
-import api from './api'
+import api, { prefixUrl } from './api'
 import { AuthResponse, LoginRequest, RegisterRequest, User } from '../types/auth.types'
 
 function makeToken(id: number, role: string): string {
@@ -41,12 +41,18 @@ export const AuthService = {
     const raw = response.data
     const user = mapLoginResponse(raw)
 
-    // Backend returns idOng: null on login — resolve real ONG id by listing ONGs
-    if (user.role === 'ONG' && !user.id) {
+    // Backend returns idOng on login — also fetch logo for the auth context
+    if (user.role === 'ONG') {
       try {
         const ongsResp = await api.get<any[]>('/ongs')
-        const ong = ongsResp.data.find((o: any) => o.email === raw.email)
-        if (ong) { user.id = ong.idOng; user.idOng = ong.idOng }
+        const ong = ongsResp.data.find((o: any) =>
+          (user.id && o.idOng === user.id) || o.email === raw.email
+        )
+        if (ong) {
+          user.id = ong.idOng
+          user.idOng = ong.idOng
+          if (ong.logoUrl) user.imagemUrl = prefixUrl(ong.logoUrl)
+        }
       } catch {
         // keep id as-is
       }
