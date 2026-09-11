@@ -14,6 +14,14 @@ export interface Usuario {
   razaoSocial?: string
   chavePix?: string
   createdAt?: string
+  // Endereco da ONG (usado no perfil e no card publico com o botao do mapa)
+  cep?: string
+  endereco?: string
+  numero?: string
+  complemento?: string
+  bairro?: string
+  cidade?: string
+  estado?: string
 }
 
 export interface UsuarioUpdateRequest {
@@ -25,6 +33,13 @@ export interface UsuarioUpdateRequest {
   site?: string
   razaoSocial?: string
   chavePix?: string
+  cep?: string
+  endereco?: string
+  numero?: string
+  complemento?: string
+  bairro?: string
+  cidade?: string
+  estado?: string
 }
 
 export interface DashboardResumo {
