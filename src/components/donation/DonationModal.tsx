@@ -1,14 +1,16 @@
-﻿import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { DoacaoService } from '../../services/DoacaoService'
 import { CategoriaService } from '../../services/CategoriaService'
 import { Categoria, Item, ItemDoacaoRequest } from '../../types/donation.types'
 import { TipoCampanha } from '../../types/campaign.types'
 import { formatCurrency } from '../../utils/formatters'
+import { statusKey } from '../../utils/donationStatus'
 import { Alert } from '../common/Alert'
 
 interface Props {
   campanhaId: number
-  campanhaTitulo: string
+  /** Mantido pra não quebrar quem já usa o modal; o cabeçalho não mostra mais o nome da campanha. */
+  campanhaTitulo?: string
   tipoCampanha: TipoCampanha
   onSuccess: () => void
   onClose: () => void
@@ -16,6 +18,15 @@ interface Props {
 
 type DonationType = 'financeira' | 'material'
 type EstadoItem = 'novo' | 'usado_bom' | 'usado_regular'
+
+/** Etapas da doação financeira. A doação só conta na campanha na etapa 'confirmada'. */
+type FasePagamento = 'form' | 'pagamento' | 'confirmada' | 'expirada'
+
+/** Mesmo prazo definido no back-end (Doacao.MINUTOS_PARA_PAGAR). */
+const PRAZO_SEGUNDOS = 15 * 60
+
+/** De quanto em quanto tempo o modal pergunta ao back se o PIX já foi pago. */
+const INTERVALO_CHECAGEM_MS = 5000
 
 const QUICK_VALUES = [10, 25, 50, 100, 250, 500]
 
@@ -27,7 +38,14 @@ const ESTADO_LABELS: Record<EstadoItem, string> = {
 
 type ItemSelecionado = ItemDoacaoRequest & { nome: string; unidade: string; perecivel: boolean }
 
-export function DonationModal({ campanhaId, campanhaTitulo, tipoCampanha, onSuccess, onClose }: Props) {
+function formatarTempo(totalSegundos: number): string {
+  const s = Math.max(0, totalSegundos)
+  const min = Math.floor(s / 60)
+  const seg = s % 60
+  return `${String(min).padStart(2, '0')}:${String(seg).padStart(2, '0')}`
+}
+
+export function DonationModal({ campanhaId, tipoCampanha, onSuccess, onClose }: Props) {
   const initialTipo: DonationType | null =
     tipoCampanha === 'financeira' ? 'financeira' :
     tipoCampanha === 'material'   ? 'material'   : null
@@ -35,7 +53,7 @@ export function DonationModal({ campanhaId, campanhaTitulo, tipoCampanha, onSucc
   const [tipo, setTipo] = useState<DonationType | null>(initialTipo)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
+  const [success, setSuccess] = useState(false)          // usado só pela doação material
   const [pixData, setPixData] = useState<{ qrCodeBase64: string; pixCopiaECola: string } | null>(null)
   const [pixCopiado, setPixCopiado] = useState(false)
   const [pixError, setPixError] = useState<string | null>(null)
@@ -44,6 +62,10 @@ export function DonationModal({ campanhaId, campanhaTitulo, tipoCampanha, onSucc
   const [valorInput, setValorInput] = useState('')
   const [quickValue, setQuickValue] = useState<number | null>(null)
   const [mensagem, setMensagem] = useState('')
+  const [fase, setFase] = useState<FasePagamento>('form')
+  const [doacaoId, setDoacaoId] = useState<number | null>(null)
+  const [valorPendente, setValorPendente] = useState(0)
+  const [segundos, setSegundos] = useState(PRAZO_SEGUNDOS)
 
   // — material —
   const [categorias, setCategorias] = useState<Categoria[]>([])
@@ -74,6 +96,51 @@ export function DonationModal({ campanhaId, campanhaTitulo, tipoCampanha, onSucc
       .catch(() => {})
       .finally(() => setLoadingItens(false))
   }, [categoriaId])
+
+  // contagem regressiva do PIX
+  useEffect(() => {
+    if (fase !== 'pagamento') return
+    const timer = setInterval(() => {
+      setSegundos(s => (s <= 1 ? 0 : s - 1))
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [fase])
+
+  // prazo acabou: a doação vira "expirada" e não entra na campanha
+  useEffect(() => {
+    if (fase !== 'pagamento' || segundos > 0) return
+    setFase('expirada')
+    if (doacaoId) DoacaoService.expirar(doacaoId).catch(() => {})
+  }, [fase, segundos, doacaoId])
+
+  // enquanto o PIX está aberto, checa no back se o pagamento já caiu
+  const onSuccessRef = useRef(onSuccess)
+  useEffect(() => { onSuccessRef.current = onSuccess }, [onSuccess])
+
+  useEffect(() => {
+    if (fase !== 'pagamento' || !doacaoId) return
+
+    let ativo = true
+
+    const checar = async () => {
+      try {
+        const doacao = await DoacaoService.buscarPorId(doacaoId)
+        if (!ativo) return
+        const status = statusKey(doacao.statusDoacao)
+        if (status === 'confirmada' || status === 'recebida') {
+          setFase('confirmada')
+          onSuccessRef.current()
+        } else if (status === 'expirada' || status === 'cancelada') {
+          setFase('expirada')
+        }
+      } catch {
+        // falha de rede: ignora e tenta de novo no próximo ciclo
+      }
+    }
+
+    const intervalo = setInterval(checar, INTERVALO_CHECAGEM_MS)
+    return () => { ativo = false; clearInterval(intervalo) }
+  }, [fase, doacaoId])
 
   const itemAtual = itensCategoria.find(i => i.idItem === Number(itemId))
 
@@ -110,171 +177,113 @@ export function DonationModal({ campanhaId, campanhaTitulo, tipoCampanha, onSucc
     setItensSelecionados(prev => prev.filter(i => i.idItem !== idItem))
   }
 
-  const handleSubmit = async () => {
+  /** Gera o PIX: registra a doação como PENDENTE e abre a tela de pagamento. */
+  const handleGerarPix = async () => {
     setError(null)
     setPixError(null)
 
-    if (tipo === 'financeira') {
-      const v = parseFloat(valorInput.replace(',', '.'))
-      if (!v || v < 1) { setError('Informe um valor válido (mínimo R$1)'); return }
-      setIsLoading(true)
-      try {
-        const doacao = await DoacaoService.realizar({ tipo: 'financeira', campanhaId, valor: v, mensagem })
-        try {
-          if (!doacao.id) throw new Error('A API não retornou o id da doação (idDoacao ausente na resposta do POST /doacoes)')
-          const pix = await DoacaoService.buscarPix(doacao.id)
-          if (!pix?.qrCodeBase64 || !pix?.pixCopiaECola) {
-            throw new Error(`Resposta do PIX incompleta: ${JSON.stringify(pix)}`)
-          }
-          setPixData(pix)
-        } catch (pixErr: any) {
-          // PIX indisponível — a doação foi registrada, mas o QR code não pôde ser gerado
-          console.error(
-            '[PIX] Falha ao buscar o QR code da doação',
-            doacao?.id,
-            '| status:', pixErr?.response?.status,
-            '| resposta:', pixErr?.response?.data,
-            '| erro:', pixErr?.message,
-            pixErr,
-          )
-          setPixError(
-            pixErr?.response?.status === 404
-              ? 'Não encontramos o PIX desta doação. Sua contribuição foi registrada — procure a ONG para concluir o pagamento.'
-              : 'Não foi possível gerar o QR code do PIX agora. Sua contribuição foi registrada.',
-          )
-        }
-        setSuccess(true)
-        onSuccess()
-      } catch (err: any) {
-        const d = err?.response?.data
-        setError(d?.message || d?.mensagem || 'Erro ao processar doação')
-      } finally {
-        setIsLoading(false)
-      }
-      return
-    }
+    const v = parseFloat(valorInput.replace(',', '.'))
+    if (!v || v < 1) { setError('Informe um valor válido (mínimo R$1)'); return }
 
-    if (tipo === 'material') {
-      if (itensSelecionados.length === 0) { setError('Adicione pelo menos um item'); return }
-      if (!descricaoGeral.trim()) { setError('Informe uma descrição geral'); return }
-      setIsLoading(true)
+    setIsLoading(true)
+    try {
+      const doacao = await DoacaoService.realizar({ tipo: 'financeira', campanhaId, valor: v, mensagem })
+      if (!doacao.id) throw new Error('A API não retornou o id da doação (idDoacao ausente na resposta do POST /doacoes)')
+
+      setDoacaoId(doacao.id)
+      setValorPendente(v)
+      setSegundos(doacao.segundosRestantes ?? PRAZO_SEGUNDOS)
+      setFase('pagamento')
+
       try {
-        await DoacaoService.realizar({
-          tipo: 'material',
-          campanhaId,
-          descricaoGeral: descricaoGeral.trim(),
-          observacoes: observacoes.trim(),
-          itens: itensSelecionados.map(({ idItem, quantidade, estadoItem, observacoes, validade }) => ({
-            idItem, quantidade, estadoItem, observacoes, validade,
-          })),
-        })
-        setSuccess(true)
-        setTimeout(() => { onSuccess(); onClose() }, 1500)
-      } catch (err: any) {
-        const d = err?.response?.data
-        setError(d?.message || d?.mensagem || 'Erro ao processar doação')
-      } finally {
-        setIsLoading(false)
+        const pix = await DoacaoService.buscarPix(doacao.id)
+        if (!pix?.qrCodeBase64 || !pix?.pixCopiaECola) {
+          throw new Error(`Resposta do PIX incompleta: ${JSON.stringify(pix)}`)
+        }
+        setPixData(pix)
+      } catch (pixErr: any) {
+        console.error(
+          '[PIX] Falha ao buscar o QR code da doação',
+          doacao?.id,
+          '| status:', pixErr?.response?.status,
+          '| resposta:', pixErr?.response?.data,
+          '| erro:', pixErr?.message,
+          pixErr,
+        )
+        setPixError(
+          pixErr?.response?.status === 404
+            ? 'Não encontramos o PIX desta doação. Fale com a ONG para concluir o pagamento.'
+            : 'Não foi possível gerar o QR code do PIX agora. Tente de novo em instantes.',
+        )
       }
+    } catch (err: any) {
+      const d = err?.response?.data
+      setError(d?.message || d?.mensagem || 'Erro ao registrar a doação')
+    } finally {
+      setIsLoading(false)
     }
   }
+
+  const handleTentarNovamente = () => {
+    setFase('form')
+    setDoacaoId(null)
+    setPixData(null)
+    setPixError(null)
+    setPixCopiado(false)
+    setError(null)
+    setSegundos(PRAZO_SEGUNDOS)
+  }
+
+  const handleSubmitMaterial = async () => {
+    setError(null)
+    if (itensSelecionados.length === 0) { setError('Adicione pelo menos um item'); return }
+    if (!descricaoGeral.trim()) { setError('Informe uma descrição geral'); return }
+    setIsLoading(true)
+    try {
+      await DoacaoService.realizar({
+        tipo: 'material',
+        campanhaId,
+        descricaoGeral: descricaoGeral.trim(),
+        observacoes: observacoes.trim(),
+        itens: itensSelecionados.map(({ idItem, quantidade, estadoItem, observacoes, validade }) => ({
+          idItem, quantidade, estadoItem, observacoes, validade,
+        })),
+      })
+      setSuccess(true)
+      setTimeout(() => { onSuccess(); onClose() }, 1500)
+    } catch (err: any) {
+      const d = err?.response?.data
+      setError(d?.message || d?.mensagem || 'Erro ao processar doação')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const tempoAcabando = segundos <= 60
+  const mostrarEscolhaTipo = !tipo && !success
 
   return (
     <div className="modal show d-block" style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)', zIndex: 1050 }}>
       <div className="modal-dialog modal-dialog-centered modal-dialog-scrollable" style={{ maxWidth: tipo === 'material' ? 580 : 480 }}>
-        <div className="modal-content border-0" style={{ borderRadius: 20, overflow: 'hidden' }}>
+        <div className="modal-content border-0">
 
           {/* Header */}
-          <div className="modal-header border-0 pb-0" style={{ background: 'linear-gradient(135deg, #6C63FF, #FF6584)', padding: '1.5rem' }}>
-            <div>
-              <h5 className="modal-title text-white fw-bold d-flex align-items-center gap-2">
+          <div className="modal-header modal-header-gradient">
+            <div className="flex-grow-1">
+              <h5 className="modal-title fw-bold d-flex align-items-center gap-2">
                 <i className="bi bi-heart-fill" />
                 Fazer Doação
               </h5>
-              <p className="text-white opacity-75 small mb-0 mt-1">{campanhaTitulo}</p>
             </div>
-            <button className="btn btn-link text-white p-0 ms-auto" onClick={onClose}>
-              <i className="bi bi-x-lg fs-5" />
+            <button type="button" className="modal-close" onClick={onClose} aria-label="Fechar">
+              <i className="bi bi-x-lg" />
             </button>
           </div>
 
           <div className="modal-body p-4">
 
-            {/* Sucesso */}
-            {success && (
-              <div className="text-center py-2">
-                <div className="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3"
-                  style={{ width: 64, height: 64, background: 'linear-gradient(135deg, #43D9A2, #6C63FF)' }}>
-                  <i className="bi bi-check-lg text-white fs-3" />
-                </div>
-                <h5 className="fw-bold">Doação registrada!</h5>
-                <p className="text-muted mb-0">Obrigado pela sua contribuição.</p>
-
-                {pixData && (
-                  <div className="mt-4 text-start">
-                    <div className="fw-semibold mb-3 text-center" style={{ color: '#6C63FF' }}>
-                      <i className="bi bi-qr-code me-2" />Pague via PIX
-                    </div>
-
-                    <div className="text-center mb-3">
-                      <img
-                        src={`data:image/png;base64,${pixData.qrCodeBase64}`}
-                        alt="QR Code PIX"
-                        style={{ width: 180, height: 180, borderRadius: 12, border: '2px solid rgba(108,99,255,0.3)' }}
-                      />
-                    </div>
-
-                    <label className="form-label small fw-semibold">Código PIX (copia e cola)</label>
-                    <div className="input-group mb-3">
-                      <input
-                        type="text"
-                        className="form-control form-control-custom"
-                        value={pixData.pixCopiaECola}
-                        readOnly
-                        style={{ fontSize: '0.75rem' }}
-                      />
-                    </div>
-
-                    <button
-                      className="btn w-100 fw-semibold"
-                      style={{ borderRadius: 12, background: pixCopiado ? 'rgba(67,217,162,0.15)' : 'rgba(108,99,255,0.1)', border: `1px solid ${pixCopiado ? '#43D9A2' : 'rgba(108,99,255,0.4)'}`, color: pixCopiado ? '#43D9A2' : '#6C63FF' }}
-                      onClick={() => {
-                        navigator.clipboard.writeText(pixData.pixCopiaECola)
-                        setPixCopiado(true)
-                        setTimeout(() => setPixCopiado(false), 2500)
-                      }}
-                    >
-                      <i className={`bi ${pixCopiado ? 'bi-check-lg' : 'bi-clipboard'} me-2`} />
-                      {pixCopiado ? 'Copiado!' : 'Copiar código PIX'}
-                    </button>
-
-                    <button className="btn btn-link w-100 mt-2 small" style={{ color: 'var(--text-muted)' }} onClick={onClose}>
-                      Fechar
-                    </button>
-                  </div>
-                )}
-
-                {!pixData && (
-                  <>
-                    {pixError && tipo === 'financeira' && (
-                      <div
-                        className="mt-3 p-3 rounded-3 text-start small"
-                        style={{ background: 'rgba(255,209,102,0.1)', border: '1px solid rgba(255,209,102,0.4)', color: '#FFD166' }}
-                      >
-                        <i className="bi bi-exclamation-triangle me-2" />
-                        {pixError}
-                      </div>
-                    )}
-                    <button className="btn btn-link mt-3 small" style={{ color: 'var(--text-muted)' }} onClick={onClose}>
-                      Fechar
-                    </button>
-                  </>
-                )}
-              </div>
-            )}
-
             {/* Escolha do tipo */}
-            {!success && !tipo && (
+            {mostrarEscolhaTipo && (
               <div>
                 <p className="fw-semibold mb-3" style={{ color: 'var(--text)' }}>Qual tipo de doação você deseja fazer?</p>
                 <div className="row g-3">
@@ -308,8 +317,8 @@ export function DonationModal({ campanhaId, campanhaTitulo, tipoCampanha, onSucc
               </div>
             )}
 
-            {/* Formulário financeiro */}
-            {!success && tipo === 'financeira' && (
+            {/* ── Financeira: formulário ──────────────────────────────────── */}
+            {tipo === 'financeira' && fase === 'form' && (
               <div>
                 {tipoCampanha === 'ambas' && (
                   <button className="btn btn-link p-0 mb-4 small" style={{ color: 'var(--text-muted)' }} onClick={() => { setTipo(null); setError(null) }}>
@@ -370,17 +379,149 @@ export function DonationModal({ campanhaId, campanhaTitulo, tipoCampanha, onSucc
                   />
                 </div>
 
-                <button className="btn btn-primary-custom w-100 py-3" onClick={handleSubmit} disabled={isLoading}>
+                <button className="btn btn-primary-custom w-100 py-3" onClick={handleGerarPix} disabled={isLoading}>
                   {isLoading
-                    ? <><span className="spinner-border spinner-border-sm me-2" />Processando...</>
-                    : <><i className="bi bi-heart-fill me-2" />Confirmar Doação</>
+                    ? <><span className="spinner-border spinner-border-sm me-2" />Gerando PIX...</>
+                    : <><i className="bi bi-qr-code me-2" />Gerar PIX</>
                   }
+                </button>
+                <p className="text-muted small text-center mt-2 mb-0">
+                  A doação só é registrada na campanha depois que você pagar.
+                </p>
+              </div>
+            )}
+
+            {/* ── Financeira: aguardando pagamento ────────────────────────── */}
+            {tipo === 'financeira' && fase === 'pagamento' && (
+              <div>
+                <div className="text-center mb-3">
+                  <div className="fw-bold" style={{ fontSize: '1.05rem', color: 'var(--text)' }}>
+                    Pague {formatCurrency(valorPendente)} via PIX
+                  </div>
+                  <p className="text-muted small mb-0">Escaneie o QR code ou use o copia e cola</p>
+                </div>
+
+                <div className="pix-timer" data-urgente={tempoAcabando ? 'true' : 'false'}>
+                  <i className="bi bi-clock-history" />
+                  <span>Este PIX expira em</span>
+                  <strong>{formatarTempo(segundos)}</strong>
+                </div>
+
+                {error && <Alert type="danger" message={error} onClose={() => setError(null)} />}
+
+                {pixError && (
+                  <div className="pix-aviso">
+                    <i className="bi bi-exclamation-triangle me-2" />
+                    {pixError}
+                  </div>
+                )}
+
+                {pixData && (
+                  <>
+                    <div className="text-center mb-3">
+                      <img
+                        src={`data:image/png;base64,${pixData.qrCodeBase64}`}
+                        alt="QR Code PIX"
+                        style={{ width: 180, height: 180, borderRadius: 12, border: '2px solid rgba(108,99,255,0.3)' }}
+                      />
+                    </div>
+
+                    <label className="form-label small fw-semibold">Código PIX (copia e cola)</label>
+                    <div className="input-group mb-3">
+                      <input
+                        type="text"
+                        className="form-control form-control-custom"
+                        value={pixData.pixCopiaECola}
+                        readOnly
+                        style={{ fontSize: '0.75rem' }}
+                      />
+                    </div>
+
+                    <button
+                      className="btn w-100 fw-semibold mb-3"
+                      style={{ borderRadius: 12, background: pixCopiado ? 'rgba(67,217,162,0.15)' : 'rgba(108,99,255,0.1)', border: `1px solid ${pixCopiado ? '#43D9A2' : 'rgba(108,99,255,0.4)'}`, color: pixCopiado ? '#43D9A2' : '#6C63FF' }}
+                      onClick={() => {
+                        navigator.clipboard.writeText(pixData.pixCopiaECola)
+                        setPixCopiado(true)
+                        setTimeout(() => setPixCopiado(false), 2500)
+                      }}
+                    >
+                      <i className={`bi ${pixCopiado ? 'bi-check-lg' : 'bi-clipboard'} me-2`} />
+                      {pixCopiado ? 'Copiado!' : 'Copiar código PIX'}
+                    </button>
+                  </>
+                )}
+
+                {!pixData && !pixError && (
+                  <div className="text-center py-4">
+                    <span className="spinner-border" style={{ color: '#6C63FF' }} />
+                    <p className="text-muted small mt-3 mb-0">Gerando seu QR code...</p>
+                  </div>
+                )}
+
+                <div className="d-flex align-items-center justify-content-center gap-2 text-muted small py-2">
+                  <span className="spinner-border spinner-border-sm" />
+                  Aguardando a confirmação do pagamento...
+                </div>
+
+                <button className="btn btn-link w-100 mt-2 small" style={{ color: 'var(--text-muted)' }} onClick={onClose}>
+                  Pagar depois
                 </button>
               </div>
             )}
 
-            {/* Formulário material */}
-            {!success && tipo === 'material' && (
+            {/* ── Financeira: confirmada ──────────────────────────────────── */}
+            {tipo === 'financeira' && fase === 'confirmada' && (
+              <div className="text-center py-2">
+                <div className="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3"
+                  style={{ width: 64, height: 64, background: 'linear-gradient(135deg, #43D9A2, #6C63FF)' }}>
+                  <i className="bi bi-check-lg text-white fs-3" />
+                </div>
+                <h5 className="fw-bold">Doação confirmada!</h5>
+                <p className="text-muted mb-0">
+                  Recebemos sua doação de <strong>{formatCurrency(valorPendente)}</strong>. Obrigado pela sua contribuição.
+                </p>
+                <button className="btn btn-primary-custom w-100 py-3 mt-4" onClick={onClose}>
+                  Fechar
+                </button>
+              </div>
+            )}
+
+            {/* ── Financeira: prazo expirado ──────────────────────────────── */}
+            {tipo === 'financeira' && fase === 'expirada' && (
+              <div className="text-center py-2">
+                <div className="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3"
+                  style={{ width: 64, height: 64, background: 'rgba(255,209,102,0.15)', border: '2px solid rgba(255,209,102,0.5)' }}>
+                  <i className="bi bi-clock-history fs-3" style={{ color: '#FFD166' }} />
+                </div>
+                <h5 className="fw-bold">Tempo esgotado</h5>
+                <p className="text-muted mb-0">
+                  O prazo de 15 minutos para pagar este PIX acabou, então a doação não foi registrada na campanha.
+                  Se quiser, é só gerar um novo.
+                </p>
+                <button className="btn btn-primary-custom w-100 py-3 mt-4" onClick={handleTentarNovamente}>
+                  <i className="bi bi-arrow-clockwise me-2" />Gerar novo PIX
+                </button>
+                <button className="btn btn-link w-100 mt-2 small" style={{ color: 'var(--text-muted)' }} onClick={onClose}>
+                  Fechar
+                </button>
+              </div>
+            )}
+
+            {/* ── Material: sucesso ───────────────────────────────────────── */}
+            {tipo === 'material' && success && (
+              <div className="text-center py-2">
+                <div className="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3"
+                  style={{ width: 64, height: 64, background: 'linear-gradient(135deg, #43D9A2, #6C63FF)' }}>
+                  <i className="bi bi-check-lg text-white fs-3" />
+                </div>
+                <h5 className="fw-bold">Doação registrada!</h5>
+                <p className="text-muted mb-0">Obrigado pela sua contribuição.</p>
+              </div>
+            )}
+
+            {/* ── Material: formulário ────────────────────────────────────── */}
+            {tipo === 'material' && !success && (
               <div>
                 {tipoCampanha === 'ambas' && (
                   <button className="btn btn-link p-0 mb-3 small" style={{ color: 'var(--text-muted)' }} onClick={() => { setTipo(null); setError(null); setItensSelecionados([]) }}>
@@ -480,7 +621,7 @@ export function DonationModal({ campanhaId, campanhaTitulo, tipoCampanha, onSucc
                             type="button"
                             className="btn w-100"
                             onClick={handleAddItem}
-                            style={{ borderRadius: 10, border: '1px solid rgba(67,217,162,0.4)', background: 'rgba(67,217,162,0.1)', color: '#43D9A2', fontWeight: 600 }}
+                            style={{ borderRadius: 10, border: '1px solid rgba(108,99,255,0.4)', background: 'rgba(108,99,255,0.1)', color: '#6C63FF', fontWeight: 600 }}
                           >
                             <i className="bi bi-plus-lg me-2" />Adicionar item
                           </button>
@@ -494,11 +635,11 @@ export function DonationModal({ campanhaId, campanhaTitulo, tipoCampanha, onSucc
                 {itensSelecionados.length > 0 && (
                   <div className="mb-3">
                     <div className="fw-semibold mb-2" style={{ fontSize: '0.875rem' }}>
-                      Itens adicionados <span className="badge ms-1" style={{ background: 'rgba(67,217,162,0.2)', color: '#43D9A2' }}>{itensSelecionados.length}</span>
+                      Itens adicionados <span className="badge ms-1" style={{ background: 'rgba(108,99,255,0.18)', color: '#6C63FF' }}>{itensSelecionados.length}</span>
                     </div>
                     <div className="d-flex flex-column gap-2">
                       {itensSelecionados.map(it => (
-                        <div key={it.idItem} className="d-flex align-items-center gap-2 p-2 rounded-3" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)' }}>
+                        <div key={it.idItem} className="d-flex align-items-center gap-2 p-2 rounded-3 modal-item-row">
                           <div className="flex-grow-1" style={{ fontSize: '0.82rem' }}>
                             <span className="fw-semibold" style={{ color: 'var(--text)' }}>{it.nome}</span>
                             <span className="text-muted ms-2">{it.quantidade} {it.unidade}</span>
@@ -543,7 +684,7 @@ export function DonationModal({ campanhaId, campanhaTitulo, tipoCampanha, onSucc
 
                 <button
                   className="btn btn-primary-custom w-100 py-3"
-                  onClick={handleSubmit}
+                  onClick={handleSubmitMaterial}
                   disabled={isLoading || itensSelecionados.length === 0}
                 >
                   {isLoading

@@ -47,9 +47,6 @@ export function DashboardLayout({ children, title }: Props) {
             >
               <i className={`bi ${isDark ? 'bi-sun-fill' : 'bi-moon-fill'} fs-5`} />
             </button>
-            <button className={`btn btn-link p-2 ${isDark ? 'text-white' : 'text-dark'}`}>
-              <i className="bi bi-bell fs-5" />
-            </button>
           </div>
         </header>
 
