@@ -1,0 +1,975 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+/* ============================================================
+   DESIGN TOKENS — light mode defaults
+   ============================================================ */
+:root {
+  /* Brand */
+  --primary: #6C63FF;
+  --primary-dark: #5A52D5;
+  --secondary: #FF6584;
+  --accent: #43D9A2;
+
+  /* Page & surfaces */
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --surface-raised: #f1f5f9;
+
+  /* Text */
+  --text: #1e293b;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+
+  /* Borders */
+  --border: #e2e8f0;
+  --border-subtle: #f1f5f9;
+
+  /* Cards — light mode */
+  --card-bg: #ffffff;
+  --card-border: #e2e8f0;
+  --card-text: #1e293b;
+  --card-text-muted: #64748b;
+
+  /* Glass card dark — ALWAYS dark, regardless of theme */
+  --glass-dark-bg: #1e293b;
+  --glass-dark-bg-hover: #263548;
+  --glass-dark-border: rgba(255, 255, 255, 0.08);
+  --glass-dark-text: #f1f5f9;
+  --glass-dark-muted: #94a3b8;
+
+  /* Navbar */
+  --navbar-bg: rgba(255, 255, 255, 0.92);
+  --navbar-text: #1e293b;
+
+  /* Sidebar */
+  --sidebar-bg: #ffffff;
+  --sidebar-border: #e2e8f0;
+  --sidebar-text: #475569;
+  --sidebar-text-active: #1e293b;
+
+  /* Inputs */
+  --input-bg: #ffffff;
+  --input-text: #1e293b;
+  --input-placeholder: #94a3b8;
+  --input-border: #d1d5db;
+  --input-border-focus: var(--primary);
+  --input-group-bg: #f8fafc;
+  --input-group-text: #64748b;
+  --input-group-border: #d1d5db;
+
+  /* Glass — light */
+  --glass-bg: rgba(255, 255, 255, 0.9);
+  --glass-border: rgba(148, 163, 184, 0.2);
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --shadow-glow: 0 0 30px rgba(108, 99, 255, 0.15);
+
+  /* Legacy aliases (keep for backward compat) */
+  --card-secondary: var(--card-bg);
+  --input-bg: var(--input-bg);
+  --input-border: var(--input-border);
+}
+
+/* ============================================================
+   DARK MODE TOKENS
+   ============================================================ */
+body.dark-mode {
+  --bg: #0f172a;
+  --surface: #1e293b;
+  --surface-raised: #334155;
+
+  --text: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-muted: #8892B0;
+
+  --border: rgba(108, 99, 255, 0.18);
+  --border-subtle: rgba(255, 255, 255, 0.04);
+
+  --card-bg: #1e293b;
+  --card-border: rgba(255, 255, 255, 0.06);
+  --card-text: #f1f5f9;
+  --card-text-muted: #8892B0;
+
+  /* Glass dark — slightly more saturated in dark mode */
+  --glass-dark-bg: rgba(26, 26, 46, 0.95);
+  --glass-dark-bg-hover: rgba(30, 30, 60, 0.95);
+  --glass-dark-border: rgba(255, 255, 255, 0.1);
+  --glass-dark-text: #f1f5f9;
+  --glass-dark-muted: #8892B0;
+
+  --navbar-bg: rgba(15, 23, 42, 0.95);
+  --navbar-text: #f1f5f9;
+
+  --sidebar-bg: #1e293b;
+  --sidebar-border: rgba(108, 99, 255, 0.15);
+  --sidebar-text: #8892B0;
+  --sidebar-text-active: #f1f5f9;
+
+  --input-bg: rgba(255, 255, 255, 0.06);
+  --input-text: #f1f5f9;
+  --input-placeholder: #64748b;
+  --input-border: rgba(255, 255, 255, 0.12);
+  --input-group-bg: rgba(255, 255, 255, 0.04);
+  --input-group-text: #8892B0;
+  --input-group-border: rgba(255, 255, 255, 0.12);
+
+  --glass-bg: rgba(255, 255, 255, 0.04);
+  --glass-border: rgba(255, 255, 255, 0.1);
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
+  --shadow-glow: 0 0 30px rgba(108, 99, 255, 0.3);
+
+  --card-secondary: var(--card-bg);
+}
+
+/* ============================================================
+   BASE
+   ============================================================ */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  background-color: var(--bg);
+  color: var(--text);
+}
+
+.page-shell {
+  background-color: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ============================================================
+   CUSTOM SCROLLBAR
+   ============================================================ */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--primary-dark); }
+
+/* ============================================================
+   GLASS CARD DARK — always dark regardless of theme
+   ============================================================ */
+.glass-card-dark {
+  background: var(--glass-dark-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-dark-border);
+  border-radius: 16px;
+  color: var(--glass-dark-text);
+}
+
+/* Ensure all text inside glass-card-dark inherits correctly */
+.glass-card-dark h1,
+.glass-card-dark h2,
+.glass-card-dark h3,
+.glass-card-dark h4,
+.glass-card-dark h5,
+.glass-card-dark h6 {
+  color: var(--glass-dark-text);
+}
+
+/* ============================================================
+   GLASS CARD (light version)
+   ============================================================ */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  color: var(--text);
+}
+
+/* ============================================================
+   NAVBAR
+   ============================================================ */
+.navbar-glass {
+  background: var(--navbar-bg);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.navbar-glass .nav-link {
+  color: var(--navbar-text) !important;
+}
+
+.navbar-glass .nav-link:hover,
+.navbar-glass .nav-link:focus {
+  color: var(--primary) !important;
+}
+
+/* Navbar brand & toggler in light mode */
+body.light-mode .navbar-glass .navbar-brand,
+body.light-mode .navbar-glass .navbar-toggler-icon {
+  filter: none;
+}
+
+/* ============================================================
+   SIDEBAR
+   ============================================================ */
+.sidebar {
+  width: 260px;
+  min-height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 1000;
+  transition: transform 0.3s ease;
+  overflow-y: auto;
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--sidebar-border);
+}
+
+.sidebar-collapsed {
+  transform: translateX(-260px);
+}
+
+.main-content {
+  margin-left: 260px;
+  min-height: 100vh;
+  transition: margin-left 0.3s ease;
+}
+
+.main-content-full {
+  margin-left: 0;
+}
+
+@media (max-width: 768px) {
+  .sidebar { transform: translateX(-260px); }
+  .sidebar.open { transform: translateX(0); }
+  .main-content { margin-left: 0; }
+}
+
+.sidebar-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0.75rem 1.25rem;
+  border-radius: 12px;
+  text-decoration: none;
+  color: var(--sidebar-text);
+  transition: all 0.2s ease;
+  margin: 2px 0;
+  font-weight: 500;
+}
+
+.sidebar-nav-item:hover {
+  background: rgba(108, 99, 255, 0.1);
+  color: var(--sidebar-text-active);
+}
+
+.sidebar-nav-item.active {
+  background: linear-gradient(135deg, rgba(108, 99, 255, 0.2), rgba(108, 99, 255, 0.08));
+  border-left: 3px solid var(--primary);
+  color: var(--primary);
+}
+
+/* ============================================================
+   METRIC CARD
+   ============================================================ */
+.metric-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 1.5rem;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-sm);
+  color: var(--card-text);
+}
+
+.metric-card:hover {
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Fix text-white inside metric-card in light mode */
+body.light-mode .metric-card .text-white,
+body.light-mode .metric-card .fw-black.text-white {
+  color: var(--card-text) !important;
+}
+
+/* Fix inline color #8892B0 — can't override inline but add utility */
+body.light-mode .metric-card-label {
+  color: var(--card-text-muted);
+}
+
+/* ============================================================
+   STAT CARD
+   ============================================================ */
+.stat-card {
+  border-radius: 16px;
+  padding: 1.5rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(108, 99, 255, 0.2);
+}
+
+/* ============================================================
+   CAMPAIGN CARD
+   ============================================================ */
+.campaign-card {
+  border-radius: 16px;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  color: var(--card-text);
+}
+
+.campaign-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+}
+
+.campaign-card .card-img-top {
+  height: 200px;
+  object-fit: cover;
+}
+
+/* ============================================================
+   FORM CONTROLS — work in both modes and inside dark cards
+   ============================================================ */
+.form-control-custom {
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  color: var(--input-text);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  width: 100%;
+  font-size: 0.95rem;
+}
+
+.form-control-custom::placeholder {
+  color: var(--input-placeholder);
+  opacity: 1;
+}
+
+.form-control-custom:focus {
+  background: var(--input-bg);
+  border-color: var(--input-border-focus);
+  box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.15);
+  color: var(--input-text);
+  outline: none;
+}
+
+/* Selects */
+.form-control-custom.form-select,
+select.form-control-custom {
+  background-color: var(--input-bg);
+  color: var(--input-text);
+  cursor: pointer;
+}
+
+/* Select options — sólido para garantir visibilidade no dropdown nativo */
+.form-control-custom option,
+select.form-control-custom option {
+  background-color: #ffffff;
+  color: #1e293b;
+}
+
+body.dark-mode .form-control-custom option,
+body.dark-mode select.form-control-custom option {
+  background-color: #1e293b;
+  color: #f1f5f9;
+}
+
+/* Input group text */
+.input-group-custom .input-group-text {
+  background: var(--input-group-bg);
+  border: 1px solid var(--input-group-border);
+  color: var(--input-group-text);
+}
+
+/* Form controls inside glass-card-dark — always use dark-appropriate styling */
+.glass-card-dark .form-control-custom {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #f1f5f9;
+}
+
+.glass-card-dark .form-control-custom::placeholder {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.glass-card-dark .form-control-custom:focus {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--primary);
+  color: #f1f5f9;
+}
+
+.glass-card-dark select.form-control-custom,
+.glass-card-dark .form-select.form-control-custom {
+  background-color: rgba(255, 255, 255, 0.07);
+  color: #f1f5f9;
+}
+
+.glass-card-dark .form-control-custom option {
+  background-color: #1e293b;
+  color: #f1f5f9;
+}
+
+/* form-label inside dark cards */
+.glass-card-dark .form-label {
+  color: var(--glass-dark-text);
+}
+
+/* ============================================================
+   INPUT GROUP — light mode fix
+   ============================================================ */
+body.light-mode .input-group .input-group-text {
+  background: var(--input-group-bg);
+  border-color: var(--input-group-border);
+  color: var(--input-group-text);
+}
+
+/* Input group inside glass-card-dark — always dark style */
+.glass-card-dark .input-group-text {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #94a3b8 !important;
+}
+
+/* ============================================================
+   LOCALIZAÇÃO SELECT — Estado e Cidade
+   ============================================================ */
+.localizacao-select select,
+.localizacao-select .form-select {
+  background-color: var(--input-bg);
+  color: var(--input-text);
+  border: 1px solid var(--input-border);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+}
+
+.localizacao-select select option {
+  background-color: var(--input-bg);
+  color: var(--input-text);
+}
+
+.localizacao-select select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.15);
+  outline: none;
+}
+
+.localizacao-select select:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Localização inside glass-card-dark */
+.glass-card-dark .localizacao-select select,
+.glass-card-dark .localizacao-select .form-select {
+  background-color: rgba(255, 255, 255, 0.07);
+  color: #f1f5f9;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.glass-card-dark .localizacao-select select option {
+  background-color: #1e293b;
+  color: #f1f5f9;
+}
+
+/* ============================================================
+   TABLES — light mode
+   ============================================================ */
+body.light-mode .table {
+  color: var(--card-text);
+}
+
+body.light-mode .table-borderless th,
+body.light-mode .table-borderless td {
+  color: var(--card-text);
+}
+
+/* Fix table header in dark glass cards */
+.glass-card-dark .table {
+  color: var(--glass-dark-text);
+}
+
+.glass-card-dark .table th {
+  color: var(--glass-dark-muted) !important;
+}
+
+/* ============================================================
+   PROGRESS BAR
+   ============================================================ */
+.progress-custom {
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(108, 99, 255, 0.15);
+}
+
+.progress-custom .progress-bar {
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+}
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+.btn-primary-custom {
+  background: var(--primary);
+  border: none;
+  color: #ffffff !important;
+  font-weight: 600;
+  border-radius: 10px;
+  padding: 0.625rem 1.5rem;
+  transition: all 0.2s ease;
+  letter-spacing: 0.01em;
+}
+
+.btn-primary-custom:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(108, 99, 255, 0.35);
+  color: #ffffff !important;
+}
+
+.btn-primary-custom:disabled {
+  opacity: 0.65;
+  transform: none;
+}
+
+/* ============================================================
+   GRADIENT TEXT & BACKGROUNDS
+   ============================================================ */
+.gradient-text {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.bg-gradient-primary {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+}
+
+.bg-gradient-dark {
+  background: linear-gradient(135deg, #0F0F1A 0%, #1A1A2E 50%, #16213E 100%);
+}
+
+/* ============================================================
+   GLOW EFFECTS
+   ============================================================ */
+.glow {
+  box-shadow: var(--shadow-glow);
+}
+
+.glow-text {
+  text-shadow: 0 0 20px rgba(108, 99, 255, 0.5);
+}
+
+/* ============================================================
+   HERO SECTION
+   ============================================================ */
+.hero-section {
+  display: flex;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-section::before {
+  display: none;
+}
+
+/* ============================================================
+   FLOATING ORBS
+   ============================================================ */
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.25;
+  animation: float 6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+body.dark-mode .orb {
+  opacity: 0.4;
+}
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -1000px 0; }
+  100% { background-position:  1000px 0; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-10px); }
+}
+
+.animate-fadeInUp { animation: fadeInUp 0.5s ease forwards; }
+.animate-fadeIn   { animation: fadeIn 0.3s ease forwards; }
+
+/* ============================================================
+   SKELETON
+   ============================================================ */
+
+/* ============================================================
+   CUSTOM ICONS — bi-paw-fill não existe no Bootstrap Icons 1.13.1
+   Usa mask-image SVG para herdar currentColor como qualquer BI
+   ============================================================ */
+.bi-paw-fill::before {
+  content: '';
+}
+
+.bi-paw-fill {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  background-color: currentColor;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='3.5' cy='3' r='1.6'/%3E%3Ccircle cx='6.5' cy='1.5' r='1.6'/%3E%3Ccircle cx='9.5' cy='1.5' r='1.6'/%3E%3Ccircle cx='12.5' cy='3' r='1.6'/%3E%3Cellipse cx='8' cy='11' rx='4' ry='3.5'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='3.5' cy='3' r='1.6'/%3E%3Ccircle cx='6.5' cy='1.5' r='1.6'/%3E%3Ccircle cx='9.5' cy='1.5' r='1.6'/%3E%3Ccircle cx='12.5' cy='3' r='1.6'/%3E%3Cellipse cx='8' cy='11' rx='4' ry='3.5'/%3E%3C/svg%3E");
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  vertical-align: -0.125em;
+}
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite;
+  border-radius: 8px;
+}
+
+body.dark-mode .skeleton {
+  background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%);
+  background-size: 1000px 100%;
+}
+
+/* ============================================================
+   SECTION SPACING
+   ============================================================ */
+.section    { padding: 6rem 0; }
+.section-sm { padding: 4rem 0; }
+
+/* ============================================================
+   IMPACT STATS
+   ============================================================ */
+.impact-number {
+  font-size: 3rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.footer-custom {
+  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.04));
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+body.dark-mode .footer-custom {
+  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.4));
+}
+
+/* ============================================================
+   DASHBOARD HEADER
+   ============================================================ */
+.dashboard-header {
+  padding: 2rem 0 1rem;
+}
+
+/* ============================================================
+   ALERT component
+   ============================================================ */
+.alert {
+  border-radius: 12px;
+}
+
+/* ============================================================
+   MODAL improvements
+   ============================================================ */
+body.light-mode .modal-content {
+  background: var(--card-bg);
+  color: var(--card-text);
+  border: 1px solid var(--card-border);
+}
+
+body.light-mode .modal-header {
+  border-color: var(--border);
+}
+
+body.light-mode .modal-footer {
+  border-color: var(--border);
+}
+
+/* ============================================================
+   BOOTSTRAP OVERRIDES — ensure proper theming
+   ============================================================ */
+
+/* text-muted inherits our design token */
+.text-muted {
+  color: var(--text-muted) !important;
+}
+
+/* Cards inside light mode pages */
+body.light-mode .card {
+  background: var(--card-bg);
+  border-color: var(--card-border);
+  color: var(--card-text);
+}
+
+/* Outline buttons on dark backgrounds */
+.glass-card-dark .btn-outline-light {
+  color: #f1f5f9;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.glass-card-dark .btn-outline-light:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+/* ============================================================
+   GLASS CARD DARK — light mode override
+   Makes dark cards adapt to the light theme so nothing stays "stuck" black
+   ============================================================ */
+body.light-mode .glass-card-dark {
+  background: var(--card-bg) !important;
+  border-color: var(--card-border) !important;
+  color: var(--card-text) !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+body.light-mode .glass-card-dark h1,
+body.light-mode .glass-card-dark h2,
+body.light-mode .glass-card-dark h3,
+body.light-mode .glass-card-dark h4,
+body.light-mode .glass-card-dark h5,
+body.light-mode .glass-card-dark h6 {
+  color: var(--card-text) !important;
+}
+
+body.light-mode .glass-card-dark .text-white {
+  color: var(--card-text) !important;
+}
+
+body.light-mode .glass-card-dark .text-muted {
+  color: var(--text-muted) !important;
+}
+
+body.light-mode .glass-card-dark .table th,
+body.light-mode .glass-card-dark .table td {
+  color: var(--card-text) !important;
+  border-color: var(--border) !important;
+}
+
+body.light-mode .glass-card-dark .input-group-text {
+  background: var(--input-group-bg) !important;
+  border-color: var(--input-group-border) !important;
+  color: var(--input-group-text) !important;
+}
+
+/* ============================================================
+   CHART CARD — always dark, needed for recharts grid/tick rendering
+   Separate from glass-card-dark so light-mode override doesn't apply
+   ============================================================ */
+.chart-card {
+  background: var(--glass-dark-bg);
+  border: 1px solid var(--glass-dark-border);
+  border-radius: 16px;
+  color: var(--glass-dark-text);
+  padding: 1.5rem;
+}
+
+.chart-card h1, .chart-card h2, .chart-card h3,
+.chart-card h4, .chart-card h5, .chart-card h6,
+.chart-card .text-white {
+  color: var(--glass-dark-text) !important;
+}
+
+/* ============================================================
+   SURFACE CARD — theme-aware card (light in light mode, dark in dark mode)
+   ============================================================ */
+.surface-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  color: var(--card-text);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+}
+
+.surface-card-hover:hover {
+  border-color: var(--primary);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
+/* ============================================================
+   CATEGORY CHIP — theme-aware clickable chip
+   ============================================================ */
+.category-chip {
+  display: block;
+  background: var(--card-bg);
+  border: 1.5px solid var(--card-border);
+  border-radius: 16px;
+  padding: 1.5rem 0.75rem;
+  text-align: center;
+  text-decoration: none !important;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  color: var(--card-text) !important;
+}
+
+.category-chip:hover {
+  border-color: var(--primary);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  color: var(--card-text) !important;
+}
+
+/* ============================================================
+   STEP CARD — for "how it works" sections
+   ============================================================ */
+.step-card {
+  background: var(--card-bg);
+  border: 1.5px solid var(--card-border);
+  border-radius: 20px;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  height: 100%;
+  color: var(--card-text);
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.step-card:hover {
+  border-color: var(--primary);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
+.step-number-bg {
+  font-size: 5rem;
+  font-weight: 900;
+  line-height: 1;
+  position: absolute;
+  top: 0.25rem;
+  right: 1rem;
+  opacity: 0.05;
+  color: var(--primary);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ============================================================
+   SECTION WRAPPERS — visual rhythm
+   ============================================================ */
+.section-alt {
+  background: var(--surface-raised);
+}
+
+.section-dark-wrapper {
+  background: linear-gradient(135deg, #0d1117 0%, #1a1a2e 60%, #16213e 100%);
+}
+
+/* ============================================================
+   LIVE INDICATOR
+   ============================================================ */
+.live-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10B981;
+  animation: pulse-dot 2s ease-in-out infinite;
+  margin-right: 5px;
+  vertical-align: middle;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.55; transform: scale(1.4); }
+}
+
+/* ============================================================
+   LABEL CAPS — small uppercase label
+   ============================================================ */
+.label-caps {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* ============================================================
+   NAVBAR — active link indicator
+   ============================================================ */
+.navbar-glass .nav-link-active {
+  color: var(--primary) !important;
+  font-weight: 600;
+}
+
+.navbar-glass .nav-link-active::after {
+  content: '';
+  display: block;
+  height: 2px;
+  width: 100%;
+  background: var(--primary);
+  border-radius: 1px;
+  margin-top: 2px;
+}
+
+/* ============================================================
+   UTILITY — text color helpers using design tokens
+   ============================================================ */
+.text-theme-muted {
+  color: var(--text-muted) !important;
+}
+
+.text-card {
+  color: var(--card-text) !important;
+}
+
+.text-glass {
+  color: var(--glass-dark-text) !important;
+}
+
+.text-glass-muted {
+  color: var(--glass-dark-muted) !important;
+}
