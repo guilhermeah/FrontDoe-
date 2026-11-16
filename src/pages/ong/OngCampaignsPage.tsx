@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { DashboardLayout } from '../../components/layout/DashboardLayout'
 import { CampaignCard } from '../../components/campaign/CampaignCard'
@@ -16,7 +16,7 @@ export function OngCampaignsPage() {
   const [alert, setAlert] = useState<{ type: 'success' | 'danger'; msg: string } | null>(null)
   const [confirmDelete, setConfirmDelete] = useState<Campanha | null>(null)
 
-  const loadCampanhas = () => {
+  const fetch = () => {
     if (!user) return
     setIsLoading(true)
     CampanhaService.listarPorOng(user.id)
@@ -24,7 +24,7 @@ export function OngCampaignsPage() {
       .finally(() => setIsLoading(false))
   }
 
-  useEffect(() => { loadCampanhas() }, [user])
+  useEffect(() => { fetch() }, [user])
 
   const handleDelete = async () => {
     if (!confirmDelete) return
@@ -32,7 +32,7 @@ export function OngCampaignsPage() {
       await CampanhaService.excluir(confirmDelete.id)
       setAlert({ type: 'success', msg: 'Campanha excluída com sucesso.' })
       setConfirmDelete(null)
-      loadCampanhas()
+      fetch()
     } catch {
       setAlert({ type: 'danger', msg: 'Erro ao excluir campanha.' })
     }
@@ -42,7 +42,7 @@ export function OngCampaignsPage() {
     try {
       await CampanhaService.encerrar(campanha.id)
       setAlert({ type: 'success', msg: 'Campanha encerrada com sucesso.' })
-      loadCampanhas()
+      fetch()
     } catch {
       setAlert({ type: 'danger', msg: 'Erro ao encerrar campanha.' })
     }
@@ -70,7 +70,7 @@ export function OngCampaignsPage() {
               <div className="modal-body p-4 text-center">
                 <i className="bi bi-exclamation-triangle text-danger fs-1 d-block mb-3" />
                 <h5 className="text-white fw-bold">Excluir campanha?</h5>
-                <p style={{ color: 'var(--text-muted)' }}>Esta ação não pode ser desfeita. A campanha "{confirmDelete.titulo}" será removida permanentemente.</p>
+                <p style={{ color: '#8892B0' }}>Esta ação não pode ser desfeita. A campanha "{confirmDelete.titulo}" será removida permanentemente.</p>
                 <div className="d-flex gap-3 justify-content-center mt-4">
                   <button className="btn btn-outline-secondary px-4" onClick={() => setConfirmDelete(null)}>Cancelar</button>
                   <button className="btn btn-danger px-4" onClick={handleDelete}>Excluir</button>

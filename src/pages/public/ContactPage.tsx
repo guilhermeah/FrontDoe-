@@ -12,17 +12,10 @@ interface ContactForm {
 }
 
 const contactInfo = [
-  { icon: 'bi-envelope', label: 'Email', value: 'contato@doemais.com.br', href: 'mailto:contato@doemais.com.br' },
-  { icon: 'bi-telephone', label: 'Telefone', value: '(19) 98128-6709', href: 'tel:+5519981286709' },
-  { icon: 'bi-geo-alt', label: 'Endereço', value: 'São Paulo, SP — Brasil', href: null },
-  { icon: 'bi-clock', label: 'Atendimento', value: 'Segunda a sexta, das 9h às 18h', href: null },
-]
-
-const socialLinks = [
-  { icon: 'bi-facebook', href: 'https://facebook.com/doemais', label: 'Facebook' },
-  { icon: 'bi-instagram', href: 'https://instagram.com/doemais', label: 'Instagram' },
-  { icon: 'bi-linkedin', href: 'https://linkedin.com/company/doemais', label: 'LinkedIn' },
-  { icon: 'bi-twitter-x', href: 'https://x.com/doemais', label: 'X' },
+  { icon: 'bi-envelope', label: 'Email', value: 'guilhermehenriquea80@gmail.com', color: '#6C63FF' },
+  { icon: 'bi-telephone', label: 'Telefone', value: '(19) 98128-6709', color: '#43D9A2' },
+  { icon: 'bi-geo-alt', label: 'Endereço', value: 'São Paulo, SP - Brasil', color: '#FF6584' },
+  { icon: 'bi-clock', label: 'Horário', value: 'Seg-Sex, 9h às 18h', color: '#FFD166' },
 ]
 
 export function ContactPage() {
@@ -42,116 +35,80 @@ export function ContactPage() {
       <div style={{ paddingTop: 80 }}>
         <div className="container py-5">
 
-          <div className="mb-5">
-            <h1 className="fw-black display-5 mb-1">Contato</h1>
-            <p style={{ color: 'var(--text-muted)' }}>Entre em contato conosco por qualquer canal abaixo.</p>
+          <div className="text-center mb-5">
+            <span className="label-caps d-block mb-2">Contato</span>
+            <h1 className="fw-black display-5 mb-2">Entre em <span className="gradient-text">contato</span></h1>
+            <p style={{ color: 'var(--text-muted)' }}>Estamos aqui para ajudar</p>
           </div>
 
           <div className="row g-5">
-            {/* Informações */}
-            <div className="col-lg-4">
-              <div className="glass-card-dark p-4 mb-4">
-                <h6 className="fw-bold mb-3 text-uppercase" style={{ fontSize: '0.75rem', letterSpacing: '0.08em', color: 'var(--text-muted)' }}>
-                  Informações
-                </h6>
-                <ul className="list-unstyled mb-0">
-                  {contactInfo.map((info) => (
-                    <li key={info.label} className="d-flex gap-3 align-items-start py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                      <i className={`bi ${info.icon} mt-1 flex-shrink-0`} style={{ color: 'var(--primary)', fontSize: '1rem' }} />
-                      <div>
-                        <div style={{ color: 'var(--text-muted)', fontSize: '0.72rem', marginBottom: 2 }}>{info.label}</div>
-                        {info.href ? (
-                          <a href={info.href} className="fw-semibold text-decoration-none" style={{ color: 'inherit', fontSize: '0.9rem' }}>
-                            {info.value}
-                          </a>
-                        ) : (
-                          <span className="fw-semibold" style={{ fontSize: '0.9rem' }}>{info.value}</span>
-                        )}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
+            <div className="col-lg-5">
+              <div className="surface-card p-4 mb-4">
+                <h5 className="fw-bold mb-4" style={{ color: 'var(--card-text)' }}>Informações de contato</h5>
+                {contactInfo.map((info) => (
+                  <div key={info.label} className="d-flex align-items-center gap-3 mb-4">
+                    <div className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style={{ width: 44, height: 44, background: `${info.color}15` }}>
+                      <i className={`bi ${info.icon}`} style={{ color: info.color }} />
+                    </div>
+                    <div>
+                      <div style={{ color: 'var(--text-muted)', fontSize: '0.72rem' }}>{info.label}</div>
+                      <div className="fw-semibold" style={{ color: 'var(--card-text)' }}>{info.value}</div>
+                    </div>
+                  </div>
+                ))}
               </div>
 
-              <div className="glass-card-dark p-4">
-                <h6 className="fw-bold mb-3 text-uppercase" style={{ fontSize: '0.75rem', letterSpacing: '0.08em', color: 'var(--text-muted)' }}>
-                  Redes sociais
-                </h6>
-                <div className="d-flex flex-column gap-2">
-                  {socialLinks.map((s) => (
+              <div className="surface-card p-4">
+                <h6 className="fw-bold mb-3" style={{ color: 'var(--card-text)' }}>Redes sociais</h6>
+                <div className="d-flex gap-3">
+                  {['facebook', 'instagram', 'linkedin', 'twitter-x'].map((s) => (
                     <a
-                      key={s.icon}
-                      href={s.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="d-flex align-items-center gap-3 py-2 text-decoration-none"
-                      style={{ color: 'inherit', borderRadius: 8, transition: 'color 0.15s' }}
-                      onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--primary)')}
-                      onMouseLeave={(e) => (e.currentTarget.style.color = 'inherit')}
+                      key={s}
+                      href="#"
+                      className="rounded-circle d-flex align-items-center justify-content-center"
+                      style={{ width: 44, height: 44, background: 'rgba(108,99,255,0.08)', color: '#6C63FF', transition: 'all 0.2s', textDecoration: 'none', border: '1px solid rgba(108,99,255,0.18)' }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(108,99,255,0.2)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(108,99,255,0.08)')}
                     >
-                      <i className={`bi ${s.icon}`} style={{ fontSize: '1.1rem', width: 20, textAlign: 'center' }} />
-                      <span style={{ fontSize: '0.9rem', fontWeight: 500 }}>{s.label}</span>
+                      <i className={`bi bi-${s}`} />
                     </a>
                   ))}
                 </div>
               </div>
             </div>
 
-            {/* Formulário */}
-            <div className="col-lg-8">
-              <div className="glass-card-dark p-4 p-md-5">
-                <h5 className="fw-bold mb-1">Enviar mensagem</h5>
-                <p className="mb-4" style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                  Preencha o formulário e responderemos em até 1 dia útil.
-                </p>
-
-                {success && <Alert type="success" message="Mensagem enviada! Entraremos em contato em breve." />}
-
+            <div className="col-lg-7">
+              <div className="surface-card p-4 p-md-5">
+                <h5 className="fw-bold mb-4" style={{ color: 'var(--card-text)' }}>Envie uma mensagem</h5>
+                {success && <Alert type="success" message="Mensagem enviada com sucesso! Entraremos em contato em breve." />}
                 <form onSubmit={handleSubmit(onSubmit)}>
                   <div className="row g-3">
                     <div className="col-md-6">
-                      <label className="form-label fw-semibold">Nome</label>
-                      <input
-                        {...register('nome', { required: 'Nome é obrigatório' })}
-                        className="form-control form-control-custom"
-                        placeholder="Seu nome completo"
-                      />
+                      <label className="form-label fw-semibold" style={{ color: 'var(--card-text)' }}>Nome</label>
+                      <input {...register('nome', { required: 'Nome é obrigatório' })} className="form-control form-control-custom" placeholder="Seu nome" />
                       {errors.nome && <div className="text-danger small mt-1">{errors.nome.message}</div>}
                     </div>
                     <div className="col-md-6">
-                      <label className="form-label fw-semibold">Email</label>
-                      <input
-                        {...register('email', { required: 'Email é obrigatório' })}
-                        type="email"
-                        className="form-control form-control-custom"
-                        placeholder="seu@email.com"
-                      />
+                      <label className="form-label fw-semibold" style={{ color: 'var(--card-text)' }}>Email</label>
+                      <input {...register('email', { required: 'Email é obrigatório' })} type="email" className="form-control form-control-custom" placeholder="seu@email.com" />
                       {errors.email && <div className="text-danger small mt-1">{errors.email.message}</div>}
                     </div>
                     <div className="col-12">
-                      <label className="form-label fw-semibold">Assunto</label>
-                      <input
-                        {...register('assunto', { required: 'Assunto é obrigatório' })}
-                        className="form-control form-control-custom"
-                        placeholder="Sobre o que você quer falar?"
-                      />
+                      <label className="form-label fw-semibold" style={{ color: 'var(--card-text)' }}>Assunto</label>
+                      <input {...register('assunto', { required: 'Assunto é obrigatório' })} className="form-control form-control-custom" placeholder="Como podemos ajudar?" />
                       {errors.assunto && <div className="text-danger small mt-1">{errors.assunto.message}</div>}
                     </div>
                     <div className="col-12">
-                      <label className="form-label fw-semibold">Mensagem</label>
-                      <textarea
-                        {...register('mensagem', { required: 'Mensagem é obrigatória' })}
-                        className="form-control form-control-custom"
-                        rows={6}
-                        placeholder="Escreva sua mensagem..."
-                      />
+                      <label className="form-label fw-semibold" style={{ color: 'var(--card-text)' }}>Mensagem</label>
+                      <textarea {...register('mensagem', { required: 'Mensagem é obrigatória' })} className="form-control form-control-custom" rows={5} placeholder="Escreva sua mensagem..." />
                       {errors.mensagem && <div className="text-danger small mt-1">{errors.mensagem.message}</div>}
                     </div>
-                    <div className="col-12 pt-1">
-                      <button type="submit" className="btn btn-primary-custom px-5 py-2" disabled={isSubmitting}>
+                    <div className="col-12">
+                      <button type="submit" className="btn btn-primary-custom px-5 py-3" disabled={isSubmitting}>
                         {isSubmitting
                           ? <><span className="spinner-border spinner-border-sm me-2" />Enviando...</>
-                          : <><i className="bi bi-send me-2" />Enviar mensagem</>}
+                          : <><i className="bi bi-send me-2" />Enviar mensagem</>
+                        }
                       </button>
                     </div>
                   </div>

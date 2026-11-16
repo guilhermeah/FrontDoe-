@@ -50,16 +50,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null)
   }
 
-  const updateUser = (partial: Partial<User>) => {
-    setUser((prev) => {
-      if (!prev) return prev
-      const cleaned = Object.fromEntries(
-        Object.entries(partial).filter(([, v]) => v !== undefined && v !== null)
-      ) as Partial<User>
-      const updated = { ...prev, ...cleaned }
-      localStorage.setItem(USER_KEY, JSON.stringify(updated))
-      return updated
-    })
+  const updateUser = (updated: User) => {
+    localStorage.setItem(USER_KEY, JSON.stringify(updated))
+    setUser(updated)
   }
 
   return (

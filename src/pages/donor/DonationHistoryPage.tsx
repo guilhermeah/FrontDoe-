@@ -1,32 +1,32 @@
-﻿import { DashboardLayout } from '../../components/layout/DashboardLayout'
+import { DashboardLayout } from '../../components/layout/DashboardLayout'
 import { SkeletonTable } from '../../components/common/SkeletonLoader'
 import { useAuth } from '../../contexts/AuthContext'
 import { useDonationsByDoador } from '../../hooks/useDonations'
 import { formatCurrency, formatDate } from '../../utils/formatters'
-import { doacaoContabilizada, statusLabel, statusStyle } from '../../utils/donationStatus'
 import { Link } from 'react-router-dom'
 
 export function DonationHistoryPage() {
   const { user } = useAuth()
   const { doacoes, isLoading } = useDonationsByDoador(user?.id)
 
-  // o total é o que foi efetivamente pago — pendente e expirada ficam de fora
-  const confirmadas = doacoes.filter((d) => doacaoContabilizada(d.statusDoacao))
-  const total = confirmadas.reduce((acc, d) => acc + d.valor, 0)
+  const total = doacoes.reduce((acc, d) => acc + d.valor, 0)
 
   return (
     <DashboardLayout title="Histórico de Doações">
       <div className="mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
         <div>
           <h4 className="fw-black mb-1" style={{ color: 'var(--text)' }}>Histórico de Doações</h4>
-          <p style={{ color: 'var(--text-muted)' }}>{confirmadas.length} doações concluídas • Total: <span style={{ color: '#43D9A2' }}>{formatCurrency(total)}</span></p>
+          <p style={{ color: 'var(--text-muted)' }}>
+            {doacoes.length} doações realizadas · Total:{' '}
+            <span style={{ color: '#43D9A2', fontWeight: 600 }}>{formatCurrency(total)}</span>
+          </p>
         </div>
         <Link to="/doador/campanhas" className="btn btn-primary-custom px-4">
           <i className="bi bi-heart me-2" />Fazer Doação
         </Link>
       </div>
 
-      <div className="glass-card-dark p-4">
+      <div className="surface-card p-4">
         {isLoading ? (
           <SkeletonTable rows={6} />
         ) : doacoes.length === 0 ? (
@@ -40,11 +40,11 @@ export function DonationHistoryPage() {
             <table className="table table-borderless align-middle" style={{ color: 'inherit' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                  <th style={{ color: 'var(--text-muted)', fontWeight: 500, fontSize: '0.8rem' }}>Campanha</th>
-                  <th style={{ color: 'var(--text-muted)', fontWeight: 500, fontSize: '0.8rem' }}>Valor</th>
-                  <th style={{ color: 'var(--text-muted)', fontWeight: 500, fontSize: '0.8rem' }}>Data</th>
-                  <th style={{ color: 'var(--text-muted)', fontWeight: 500, fontSize: '0.8rem' }}>Mensagem</th>
-                  <th style={{ color: 'var(--text-muted)', fontWeight: 500, fontSize: '0.8rem' }}>Status</th>
+                  <th style={{ color: 'var(--text-muted)', fontWeight: 500, fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Campanha</th>
+                  <th style={{ color: 'var(--text-muted)', fontWeight: 500, fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Valor</th>
+                  <th style={{ color: 'var(--text-muted)', fontWeight: 500, fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Data</th>
+                  <th style={{ color: 'var(--text-muted)', fontWeight: 500, fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Mensagem</th>
+                  <th style={{ color: 'var(--text-muted)', fontWeight: 500, fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Tipo</th>
                 </tr>
               </thead>
               <tbody>
@@ -56,7 +56,7 @@ export function DonationHistoryPage() {
                           <i className="bi bi-heart" style={{ color: '#43D9A2', fontSize: '0.8rem' }} />
                         </div>
                         <div>
-                          <div className="text-white fw-semibold" style={{ fontSize: '0.875rem' }}>
+                          <div className="fw-semibold" style={{ fontSize: '0.875rem', color: 'var(--card-text)' }}>
                             {d.campanhaTitulo || `Campanha #${d.campanhaId}`}
                           </div>
                           <div style={{ color: 'var(--text-muted)', fontSize: '0.72rem' }}>ID #{d.id}</div>
@@ -64,35 +64,20 @@ export function DonationHistoryPage() {
                       </div>
                     </td>
                     <td>
-                      <span
-                        style={{
-                          color: doacaoContabilizada(d.statusDoacao) ? '#43D9A2' : 'var(--text-muted)',
-                          fontWeight: 700,
-                          fontSize: '0.9rem',
-                        }}
-                      >
-                        {formatCurrency(d.valor)}
-                      </span>
+                      <span style={{ color: '#43D9A2', fontWeight: 700, fontSize: '0.9rem' }}>{formatCurrency(d.valor)}</span>
                     </td>
                     <td>
                       <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>{formatDate(d.createdAt)}</span>
                     </td>
                     <td>
-                      <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>{d.mensagem || '-'}</span>
+                      <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>{d.mensagem || '—'}</span>
                     </td>
                     <td>
-                      <span
-                        className="px-2 py-1 rounded-2"
-                        style={{
-                          background: statusStyle(d.statusDoacao).bg,
-                          color: statusStyle(d.statusDoacao).color,
-                          fontSize: '0.75rem',
-                          fontWeight: 600,
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {statusLabel(d.statusDoacao)}
-                      </span>
+                      {d.anonimo ? (
+                        <span className="badge bg-secondary">Anônimo</span>
+                      ) : (
+                        <span className="badge bg-success bg-opacity-25 text-success">Público</span>
+                      )}
                     </td>
                   </tr>
                 ))}

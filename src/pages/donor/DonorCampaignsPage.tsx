@@ -1,4 +1,4 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import { DashboardLayout } from '../../components/layout/DashboardLayout'
 import { CampaignCard } from '../../components/campaign/CampaignCard'
 import { SkeletonCard } from '../../components/common/SkeletonLoader'
@@ -25,7 +25,6 @@ export function DonorCampaignsPage() {
         <DonationModal
           campanhaId={selected.id}
           campanhaTitulo={selected.titulo}
-          tipoCampanha={selected.tipoCampanha}
           onSuccess={refetch}
           onClose={() => setSelected(null)}
         />
@@ -40,7 +39,7 @@ export function DonorCampaignsPage() {
         <div className="row g-3">
           <div className="col-md-8">
             <div className="input-group">
-              <span className="input-group-text" style={{ background: 'rgba(108,99,255,0.1)', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-muted)' }}>
+              <span className="input-group-text" style={{ background: 'rgba(108,99,255,0.1)', border: '1px solid rgba(255,255,255,0.1)', color: '#8892B0' }}>
                 <i className="bi bi-search" />
               </span>
               <input
@@ -77,7 +76,12 @@ export function DonorCampaignsPage() {
             ))
           : filtered.map((c) => (
               <div key={c.id} className="col-sm-6 col-xl-4">
-                <CampaignCard campanha={c} onDonate={setSelected} />
+                <div
+                  className="campaign-card card border-0 shadow-sm h-100"
+                  style={{ cursor: 'default' }}
+                >
+                  <CampaignCard campanha={c} />
+                </div>
               </div>
             ))
         }

@@ -33,26 +33,15 @@ export function useCampaign(id: number) {
   const [campanha, setCampanha] = useState<Campanha | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [refreshKey, setRefreshKey] = useState(0)
-  const idCarregado = useRef<number | null>(null)
 
   useEffect(() => {
     if (!id) return
-    // O loading de tela cheia so vale para a primeira carga desta campanha.
-    // Num refetch (ex.: logo apos uma doacao) a pagina precisa continuar
-    // montada - senao o CampaignDetailPage troca tudo por um spinner, o
-    // DonationModal e desmontado e o QR Code do PIX aparece e some.
-    if (idCarregado.current !== id) setIsLoading(true)
+    setIsLoading(true)
     CampanhaService.buscarPorId(id)
-      .then((c) => {
-        setCampanha(c)
-        idCarregado.current = id
-      })
+      .then(setCampanha)
       .catch(() => setError('Campanha não encontrada'))
       .finally(() => setIsLoading(false))
-  }, [id, refreshKey])
+  }, [id])
 
-  const refetch = useCallback(() => setRefreshKey((k) => k + 1), [])
-
-  return { campanha, isLoading, error, refetch }
+  return { campanha, isLoading, error }
 }

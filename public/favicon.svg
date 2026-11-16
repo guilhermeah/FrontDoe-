@@ -1,7 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <rect width="100" height="100" rx="20" fill="#6C63FF"/>
-  <!-- Shield body -->
-  <path d="M50 13 L79 26 L79 51 C79 68 66 80 50 86 C34 80 21 68 21 51 L21 26 Z" fill="white"/>
-  <!-- Heart inside shield -->
-  <path d="M50 70 C50 70 33 57 33 45 C33 38 38 32 44 35 C47 36 49 40 50 43 C51 40 53 36 56 35 C62 32 67 38 67 45 C67 57 50 70 50 70Z" fill="#6C63FF"/>
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6C63FF"/>
+      <stop offset="100%" style="stop-color:#FF6584"/>
+    </linearGradient>
+  </defs>
+  <rect width="100" height="100" rx="20" fill="url(#g)"/>
+  <path d="M50 75 C50 75 20 55 20 35 C20 25 28 18 38 20 C43 21 48 25 50 30 C52 25 57 21 62 20 C72 18 80 25 80 35 C80 55 50 75 50 75Z" fill="white"/>
 </svg>

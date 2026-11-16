@@ -11,40 +11,43 @@ export interface Doacao {
   mensagem?: string
   anonimo?: boolean
   createdAt: string
-  /** Só vem preenchido enquanto a doação financeira está aguardando pagamento */
-  expiraEm?: string
-  segundosRestantes?: number
-}
-
-export interface Categoria {
-  idCategoria: number
-  nome: string
-  descricao?: string
-}
-
-export interface Item {
-  idItem: number
-  nome: string
-  unidadeMedida: string
-  perecivel: boolean
-}
-
-export interface ItemDoacaoRequest {
-  idItem: number
-  quantidade: number
-  estadoItem: 'novo' | 'usado_bom' | 'usado_regular'
-  observacoes?: string
-  validade?: string
+  // Campos de doação de item
+  descricaoGeral?: string
+  modalidadeEntrega?: 'retirada' | 'entrega_na_ong'
+  enderecoRetirada?: string
+  horarioDisponivel?: string
+  fotosUrls?: string[]
 }
 
 export interface DoacaoRequest {
-  tipo: 'financeira' | 'material'
+  valor: number
   campanhaId: number
-  // financeira
-  valor?: number
   mensagem?: string
-  // material
-  descricaoGeral?: string
+  anonimo?: boolean
+}
+
+export interface DoacaoItemRequest {
+  idOng: number
+  idCampanha?: number
+  descricaoGeral: string
+  tipoItem: string
+  modalidadeEntrega: 'retirada' | 'entrega_na_ong'
+  enderecoRetirada?: string
+  horarioDisponivel: string
   observacoes?: string
-  itens?: ItemDoacaoRequest[]
+}
+
+export interface PixResponse {
+  idDoacao: number
+  pixCopiaECola: string
+  qrCodeBase64: string
+  valor: number
+  txId: string
+  mensagem: string
+}
+
+export interface DoacaoStatus {
+  idDoacao: number
+  status: 'pendente' | 'confirmada' | 'expirada' | string
+  segundosRestantes: number | null
 }

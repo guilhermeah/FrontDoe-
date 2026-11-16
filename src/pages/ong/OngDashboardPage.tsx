@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { DashboardLayout } from '../../components/layout/DashboardLayout'
 import { SkeletonLine } from '../../components/common/SkeletonLoader'
@@ -34,7 +34,7 @@ export function OngDashboardPage() {
         { label: 'Total Campanhas', value: stats.totalCampanhas, icon: 'bi-megaphone', color: '#6C63FF', bg: 'rgba(108,99,255,0.1)' },
         { label: 'Ativas', value: stats.campanhasAtivas, icon: 'bi-activity', color: '#43D9A2', bg: 'rgba(67,217,162,0.1)' },
         { label: 'Arrecadado', value: formatCurrency(stats.totalArrecadado), icon: 'bi-cash-stack', color: '#FFD166', bg: 'rgba(255,209,102,0.1)' },
-        { label: 'Doadores Ativos', value: stats.totalDoadores, icon: 'bi-people', color: '#FF6584', bg: 'rgba(255,101,132,0.1)' },
+        { label: 'Doadores', value: stats.totalDoadores, icon: 'bi-people', color: '#FF6584', bg: 'rgba(255,101,132,0.1)' },
       ]
     : []
 
@@ -55,7 +55,7 @@ export function OngDashboardPage() {
         {isLoading
           ? Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="col-sm-6 col-xl-3">
-                <div className="glass-card-dark p-4"><SkeletonLine height="1rem" className="mb-2" /><SkeletonLine width="60%" height="2rem" /></div>
+                <div className="surface-card p-4"><SkeletonLine height="1rem" className="mb-2" /><SkeletonLine width="60%" height="2rem" /></div>
               </div>
             ))
           : metrics.map((m) => (
@@ -66,7 +66,7 @@ export function OngDashboardPage() {
                   </div>
                   <div>
                     <div style={{ color: 'var(--card-text-muted)', fontSize: '0.8rem' }}>{m.label}</div>
-                    <div className="text-white fw-black fs-4 lh-1">{m.value}</div>
+                    <div className="fw-black fs-4 lh-1" style={{ color: 'var(--card-text)' }}>{m.value}</div>
                   </div>
                 </div>
               </div>
@@ -78,8 +78,8 @@ export function OngDashboardPage() {
       {stats?.arrecadacaoPorMes && stats.arrecadacaoPorMes.length > 0 && (
         <div className="row g-4 mb-4">
           <div className="col-lg-8">
-            <div className="glass-card-dark p-4">
-              <h6 className="fw-bold text-white mb-4">Arrecadação por Mês</h6>
+            <div className="chart-card">
+              <h6 className="fw-bold mb-4" style={{ color: 'var(--glass-dark-text)' }}>Arrecadação por Mês</h6>
               <ResponsiveContainer width="100%" height={250}>
                 <AreaChart data={stats.arrecadacaoPorMes}>
                   <defs>
@@ -88,23 +88,23 @@ export function OngDashboardPage() {
                       <stop offset="95%" stopColor="#6C63FF" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                  <XAxis dataKey="mes" tick={{ fill: 'var(--text-muted)', fontSize: 12 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 12 }} axisLine={false} tickLine={false} tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
-                  <Tooltip contentStyle={{ background: 'var(--surface)', border: '1px solid rgba(108,99,255,0.3)', borderRadius: 12 }} formatter={(v: number) => [formatCurrency(v), 'Arrecadado']} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                  <XAxis dataKey="mes" tick={{ fill: '#8892B0', fontSize: 12 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: '#8892B0', fontSize: 12 }} axisLine={false} tickLine={false} tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
+                  <Tooltip contentStyle={{ background: '#1A1A2E', border: '1px solid rgba(108,99,255,0.3)', borderRadius: 12 }} formatter={(v: number) => [formatCurrency(v), 'Arrecadado']} />
                   <Area type="monotone" dataKey="valor" stroke="#6C63FF" strokeWidth={2} fill="url(#gradArea)" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
           </div>
           <div className="col-lg-4">
-            <div className="glass-card-dark p-4 h-100">
-              <h6 className="fw-bold text-white mb-4">Doações por Mês</h6>
+            <div className="chart-card h-100">
+              <h6 className="fw-bold mb-4" style={{ color: 'var(--glass-dark-text)' }}>Doações por Mês</h6>
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={stats.arrecadacaoPorMes}>
-                  <XAxis dataKey="mes" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
-                  <Tooltip contentStyle={{ background: 'var(--surface)', border: '1px solid rgba(108,99,255,0.3)', borderRadius: 12 }} />
+                  <XAxis dataKey="mes" tick={{ fill: '#8892B0', fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: '#8892B0', fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <Tooltip contentStyle={{ background: '#1A1A2E', border: '1px solid rgba(108,99,255,0.3)', borderRadius: 12 }} />
                   <Bar dataKey="valor" fill="#43D9A2" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -114,12 +114,10 @@ export function OngDashboardPage() {
       )}
 
       {/* Recent campaigns */}
-      <div className="glass-card-dark p-4">
+      <div className="surface-card p-4">
         <div className="d-flex justify-content-between align-items-center mb-4">
-          <h6 className="fw-bold text-white mb-0">Campanhas Recentes</h6>
-          <Link to="/ong/campanhas" className="btn btn-sm" style={{ background: 'rgba(108,99,255,0.15)', border: '1px solid rgba(108,99,255,0.3)', color: '#6C63FF', borderRadius: 10 }}>
-            Ver todas
-          </Link>
+          <h6 className="fw-bold mb-0" style={{ color: 'var(--card-text)' }}>Campanhas Recentes</h6>
+          <Link to="/ong/campanhas" className="btn btn-sm btn-outline-primary rounded-pill px-3">Ver todas</Link>
         </div>
         {isLoading ? (
           <SkeletonLine height="60px" />
@@ -133,20 +131,20 @@ export function OngDashboardPage() {
           </div>
         ) : (
           <div className="table-responsive">
-            <table className="table table-borderless align-middle mb-0" style={{ color: 'inherit' }}>
+            <table className="table table-borderless align-middle mb-0">
               <thead>
-                <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                  <th style={{ color: 'var(--text-muted)', fontWeight: 500, fontSize: '0.8rem' }}>Campanha</th>
-                  <th style={{ color: 'var(--text-muted)', fontWeight: 500, fontSize: '0.8rem' }}>Status</th>
-                  <th style={{ color: 'var(--text-muted)', fontWeight: 500, fontSize: '0.8rem' }}>Progresso</th>
-                  <th style={{ color: 'var(--text-muted)', fontWeight: 500, fontSize: '0.8rem' }}>Arrecadado</th>
+                <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                  <th style={{ color: 'var(--text-muted)', fontWeight: 500, fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Campanha</th>
+                  <th style={{ color: 'var(--text-muted)', fontWeight: 500, fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Status</th>
+                  <th style={{ color: 'var(--text-muted)', fontWeight: 500, fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Progresso</th>
+                  <th style={{ color: 'var(--text-muted)', fontWeight: 500, fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Arrecadado</th>
                 </tr>
               </thead>
               <tbody>
                 {campanhas.slice(0, 5).map((c) => (
                   <tr key={c.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
                     <td>
-                      <div className="text-white fw-semibold" style={{ fontSize: '0.875rem' }}>{c.titulo}</div>
+                      <div className="fw-semibold" style={{ fontSize: '0.875rem', color: 'var(--card-text)' }}>{c.titulo}</div>
                       <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>Meta: {formatCurrency(c.metaFinanceira)}</div>
                     </td>
                     <td>

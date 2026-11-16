@@ -15,27 +15,20 @@ import { RegisterPage } from '../pages/auth/RegisterPage'
 
 import { AdminDashboardPage } from '../pages/admin/AdminDashboardPage'
 
-import { OngDashboardPage } from '../pages/ong/OngDashboardPage'
-import { OngCampaignsPage } from '../pages/ong/OngCampaignsPage'
-import { OngDonationsPage } from '../pages/ong/OngDonationsPage'
-import { CreateCampaignPage } from '../pages/ong/CreateCampaignPage'
-import { EditCampaignPage } from '../pages/ong/EditCampaignPage'
-import { OngProfilePage } from '../pages/ong/OngProfilePage'
-
 import { DonorDashboardPage } from '../pages/donor/DonorDashboardPage'
 import { DonorCampaignsPage } from '../pages/donor/DonorCampaignsPage'
 import { DonationHistoryPage } from '../pages/donor/DonationHistoryPage'
 import { DonorProfilePage } from '../pages/donor/DonorProfilePage'
+import { DoarItemPage } from '../pages/donor/DoarItemPage'
 
 function RedirectByRole() {
   const { user } = useAuth()
   if (!user) return <Navigate to="/login" replace />
   const paths: Record<string, string> = {
     ADMIN: '/admin/dashboard',
-    ONG: '/ong/dashboard',
     DOADOR: '/doador/dashboard',
   }
-  return <Navigate to={paths[user.role] || '/login'} replace />
+  return <Navigate to={paths[user.role] || '/doador/dashboard'} replace />
 }
 
 export function AppRoutes() {
@@ -67,18 +60,6 @@ export function AppRoutes() {
         </Route>
       </Route>
 
-      {/* ONG */}
-      <Route element={<PrivateRoute />}>
-        <Route element={<RoleRoute allowedRoles={['ONG']} />}>
-          <Route path="/ong/dashboard" element={<OngDashboardPage />} />
-          <Route path="/ong/campanhas" element={<OngCampaignsPage />} />
-          <Route path="/ong/campanhas/criar" element={<CreateCampaignPage />} />
-          <Route path="/ong/campanhas/editar/:id" element={<EditCampaignPage />} />
-          <Route path="/ong/doacoes" element={<OngDonationsPage />} />
-          <Route path="/ong/perfil" element={<OngProfilePage />} />
-        </Route>
-      </Route>
-
       {/* Doador */}
       <Route element={<PrivateRoute />}>
         <Route element={<RoleRoute allowedRoles={['DOADOR']} />}>
@@ -86,6 +67,7 @@ export function AppRoutes() {
           <Route path="/doador/campanhas" element={<DonorCampaignsPage />} />
           <Route path="/doador/historico" element={<DonationHistoryPage />} />
           <Route path="/doador/perfil" element={<DonorProfilePage />} />
+          <Route path="/doador/doar-item" element={<DoarItemPage />} />
         </Route>
       </Route>
 

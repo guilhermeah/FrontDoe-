@@ -1,15 +1,9 @@
-﻿import { useState } from 'react'
-import { Link, useNavigate, Navigate } from 'react-router-dom'
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { useAuth } from '../../contexts/AuthContext'
 import { LoginRequest } from '../../types/auth.types'
 import { Alert } from '../../components/common/Alert'
-
-const ROLE_PATHS: Record<string, string> = {
-  ADMIN: '/admin/dashboard',
-  ONG: '/ong/dashboard',
-  DOADOR: '/doador/dashboard',
-}
 
 export function LoginPage() {
   const { login, user } = useAuth()
@@ -20,7 +14,14 @@ export function LoginPage() {
 
   const { register, handleSubmit, formState: { errors } } = useForm<LoginRequest>()
 
-  if (user) return <Navigate to={ROLE_PATHS[user.role] || '/'} replace />
+  if (user) {
+    const paths: Record<string, string> = {
+      ADMIN: '/admin/dashboard',
+      ONG: '/ong/dashboard',
+      DOADOR: '/doador/dashboard',
+    }
+    navigate(paths[user.role] || '/')
+  }
 
   const onSubmit = async (data: LoginRequest) => {
     setIsLoading(true)
@@ -28,10 +29,14 @@ export function LoginPage() {
     try {
       await login(data)
       const role = JSON.parse(localStorage.getItem('@doemais:user') || '{}').role
-      navigate(ROLE_PATHS[role] || '/', { replace: true })
+      const paths: Record<string, string> = {
+        ADMIN: '/admin/dashboard',
+        ONG: '/ong/dashboard',
+        DOADOR: '/doador/dashboard',
+        }
+      navigate(paths[role] || '/')
     } catch (err: any) {
-      const errData = err?.response?.data
-      setError(errData?.message || errData?.mensagem || 'Email ou senha inválidos')
+      setError(err?.response?.data?.message || 'Email ou senha inválidos')
     } finally {
       setIsLoading(false)
     }
@@ -57,7 +62,7 @@ export function LoginPage() {
                   <span className="fw-bold fs-4 gradient-text">Doe+</span>
                 </Link>
                 <h4 className="text-white fw-bold">Bem-vindo de volta</h4>
-                <p style={{ color: 'var(--text-muted)' }}>Entre na sua conta para continuar</p>
+                <p style={{ color: '#8892B0' }}>Entre na sua conta para continuar</p>
               </div>
 
               {error && <Alert type="danger" message={error} onClose={() => setError(null)} />}
@@ -66,7 +71,7 @@ export function LoginPage() {
                 <div className="mb-3">
                   <label className="form-label text-white fw-semibold">Email</label>
                   <div className="input-group">
-                    <span className="input-group-text" style={{ background: 'rgba(108,99,255,0.1)', border: '1px solid var(--input-group-border)', color: 'var(--text-muted)' }}>
+                    <span className="input-group-text" style={{ background: 'rgba(108,99,255,0.1)', border: '1px solid rgba(255,255,255,0.1)', color: '#8892B0' }}>
                       <i className="bi bi-envelope" />
                     </span>
                     <input
@@ -86,7 +91,7 @@ export function LoginPage() {
                 <div className="mb-4">
                   <label className="form-label text-white fw-semibold">Senha</label>
                   <div className="input-group">
-                    <span className="input-group-text" style={{ background: 'rgba(108,99,255,0.1)', border: '1px solid var(--input-group-border)', color: 'var(--text-muted)' }}>
+                    <span className="input-group-text" style={{ background: 'rgba(108,99,255,0.1)', border: '1px solid rgba(255,255,255,0.1)', color: '#8892B0' }}>
                       <i className="bi bi-lock" />
                     </span>
                     <input
@@ -99,7 +104,7 @@ export function LoginPage() {
                     <button
                       type="button"
                       className="input-group-text border-0"
-                      style={{ background: 'rgba(108,99,255,0.1)', border: '1px solid var(--input-group-border)', cursor: 'pointer', color: 'var(--text-muted)' }}
+                      style={{ background: 'rgba(108,99,255,0.1)', border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer', color: '#8892B0' }}
                       onClick={() => setShowPassword((v) => !v)}
                     >
                       <i className={`bi ${showPassword ? 'bi-eye-slash' : 'bi-eye'}`} />
@@ -121,7 +126,7 @@ export function LoginPage() {
                 </button>
               </form>
 
-              <p className="text-center mb-0" style={{ color: 'var(--text-muted)' }}>
+              <p className="text-center mb-0" style={{ color: '#8892B0' }}>
                 Não tem conta?{' '}
                 <Link to="/cadastro" className="text-decoration-none fw-semibold" style={{ color: '#6C63FF' }}>
                   Cadastre-se

@@ -1,81 +1,64 @@
-import api, { prefixUrl } from './api'
+import api from './api'
 import { AuthResponse, LoginRequest, RegisterRequest, User } from '../types/auth.types'
 
 function makeToken(id: number, role: string): string {
   return btoa(JSON.stringify({ id, role }))
 }
 
-const PERFIL_TO_ROLE: Record<string, User['role']> = {
-  admin: 'ADMIN',
-  ong: 'ONG',
-  doador: 'DOADOR',
-  funcionario: 'ADMIN',
-  voluntario: 'ADMIN',
+function mapDoadorToUser(d: any): User {
+  return {
+    id: d.idDoador,
+    nome: d.nome,
+    email: d.email ?? '',
+    role: 'DOADOR',
+    telefone: d.telefone,
+    imagemUrl: d.imagemUrl ?? d.fotoUrl,
+  }
 }
 
-function mapLoginResponse(data: any): User {
-  const perfil = String(data.perfil).toLowerCase()
-  const role = PERFIL_TO_ROLE[perfil] ?? 'DOADOR'
-
-  let id: number
-  if (perfil === 'ong') {
-    id = data.idOng  // null when ONG not linked yet — resolved after login via /ongs lookup
-  } else if (perfil === 'doador') {
-    id = data.idDoador ?? data.idUsuario ?? data.id
-  } else {
-    id = data.idUsuario ?? data.id
-  }
-
+function mapOngToUser(o: any): User {
   return {
-    id,
-    nome: data.nome,
-    email: data.email ?? '',
-    role,
-    ...(data.idOng != null ? { idOng: data.idOng } : {}),
+    id: o.idOng,
+    nome: o.nomeFantasia || o.razaoSocial,
+    email: o.email ?? '',
+    role: 'ONG',
+    telefone: o.telefone,
+    imagemUrl: o.imagemUrl ?? o.logoUrl,
   }
 }
 
 export const AuthService = {
   async login(data: LoginRequest): Promise<AuthResponse> {
-    const response = await api.post('/auth/login', { email: data.email, senha: data.senha })
-    const raw = response.data
-    const user = mapLoginResponse(raw)
+    const [doadoresResp, ongsResp] = await Promise.all([
+      api.get('/doadores'),
+      api.get('/ongs'),
+    ])
 
-    // Backend returns idOng on login — also fetch logo for the auth context
-    if (user.role === 'ONG') {
-      try {
-        const ongsResp = await api.get<any[]>('/ongs')
-        const ong = ongsResp.data.find((o: any) =>
-          (user.id && o.idOng === user.id) || o.email === raw.email
-        )
-        if (ong) {
-          user.id = ong.idOng
-          user.idOng = ong.idOng
-          if (ong.logoUrl) user.imagemUrl = prefixUrl(ong.logoUrl)
-        }
-      } catch {
-        // keep id as-is
-      }
+    const doador = doadoresResp.data.find((d: any) => d.email === data.email)
+    if (doador) {
+      const user = mapDoadorToUser(doador)
+      return { token: makeToken(user.id, 'DOADOR'), user }
     }
 
-    return { token: makeToken(user.id, user.role), user }
+    const ong = ongsResp.data.find((o: any) => o.email === data.email)
+    if (ong) {
+      const user = mapOngToUser(ong)
+      return { token: makeToken(user.id, 'ONG'), user }
+    }
+
+    throw { response: { data: { message: 'Email não encontrado. Verifique seus dados.' } } }
   },
 
   async register(data: RegisterRequest): Promise<AuthResponse> {
     if (data.role === 'ONG') {
-      const response = await api.post('/usuarios', {
-        nome: data.nome,
+      const response = await api.post('/ongs', {
+        razaoSocial: data.nome,
+        cnpj: data.cnpj ?? '',
         email: data.email,
         senha: data.senha,
-        perfil: 'ong',
+        telefone: data.telefone ?? '',
       })
-      const raw = response.data
-      const user: User = {
-        id: raw.idOng ?? raw.idUsuario,
-        nome: raw.nome,
-        email: raw.email ?? '',
-        role: 'ONG',
-      }
+      const user = mapOngToUser(response.data)
       return { token: makeToken(user.id, 'ONG'), user }
     }
 
@@ -84,15 +67,9 @@ export const AuthService = {
       nome: data.nome,
       email: data.email,
       senha: data.senha,
-      cpfCnpj: data.cpfCnpj ?? '',
+      telefone: data.telefone ?? '',
     })
-    const d = response.data
-    const user: User = {
-      id: d.idDoador,
-      nome: d.nome,
-      email: d.email ?? '',
-      role: 'DOADOR',
-    }
+    const user = mapDoadorToUser(response.data)
     return { token: makeToken(user.id, 'DOADOR'), user }
   },
 

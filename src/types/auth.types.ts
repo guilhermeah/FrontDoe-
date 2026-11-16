@@ -5,7 +5,6 @@ export interface User {
   nome: string
   email: string
   role: UserRole
-  idOng?: number
   imagemUrl?: string
   telefone?: string
   createdAt?: string
@@ -21,7 +20,9 @@ export interface RegisterRequest {
   email: string
   senha: string
   role: UserRole
-  cpfCnpj?: string
+  telefone?: string
+  cnpj?: string
+  descricao?: string
 }
 
 export interface AuthResponse {
@@ -37,5 +38,5 @@ export interface AuthContextType {
   login: (data: LoginRequest) => Promise<void>
   register: (data: RegisterRequest) => Promise<void>
   logout: () => void
-  updateUser: (partial: Partial<User>) => void
+  updateUser: (user: User) => void
 }

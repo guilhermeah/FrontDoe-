@@ -1,42 +1,53 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
-/* tokens — light mode */
+/* ============================================================
+   DESIGN TOKENS — light mode defaults
+   ============================================================ */
 :root {
+  /* Brand */
   --primary: #6C63FF;
   --primary-dark: #5A52D5;
   --secondary: #FF6584;
   --accent: #43D9A2;
 
+  /* Page & surfaces */
   --bg: #f8fafc;
   --surface: #ffffff;
   --surface-raised: #f1f5f9;
 
+  /* Text */
   --text: #1e293b;
   --text-secondary: #475569;
   --text-muted: #64748b;
 
+  /* Borders */
   --border: #e2e8f0;
   --border-subtle: #f1f5f9;
 
+  /* Cards — light mode */
   --card-bg: #ffffff;
   --card-border: #e2e8f0;
   --card-text: #1e293b;
   --card-text-muted: #64748b;
-  --card-secondary: var(--card-bg);
 
+  /* Glass card dark — ALWAYS dark, regardless of theme */
   --glass-dark-bg: #1e293b;
+  --glass-dark-bg-hover: #263548;
   --glass-dark-border: rgba(255, 255, 255, 0.08);
   --glass-dark-text: #f1f5f9;
   --glass-dark-muted: #94a3b8;
 
+  /* Navbar */
   --navbar-bg: rgba(255, 255, 255, 0.92);
   --navbar-text: #1e293b;
 
+  /* Sidebar */
   --sidebar-bg: #ffffff;
   --sidebar-border: #e2e8f0;
   --sidebar-text: #475569;
   --sidebar-text-active: #1e293b;
 
+  /* Inputs */
   --input-bg: #ffffff;
   --input-text: #1e293b;
   --input-placeholder: #94a3b8;
@@ -46,19 +57,24 @@
   --input-group-text: #64748b;
   --input-group-border: #d1d5db;
 
-  --select-arrow: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
-  --select-option-bg: #ffffff;
-  --select-option-text: #1e293b;
-
+  /* Glass — light */
   --glass-bg: rgba(255, 255, 255, 0.9);
   --glass-border: rgba(148, 163, 184, 0.2);
 
+  /* Shadows */
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
   --shadow-glow: 0 0 30px rgba(108, 99, 255, 0.15);
+
+  /* Legacy aliases (keep for backward compat) */
+  --card-secondary: var(--card-bg);
+  --input-bg: var(--input-bg);
+  --input-border: var(--input-border);
 }
 
-/* tokens — dark mode */
+/* ============================================================
+   DARK MODE TOKENS
+   ============================================================ */
 body.dark-mode {
   --bg: #0f172a;
   --surface: #1e293b;
@@ -75,9 +91,10 @@ body.dark-mode {
   --card-border: rgba(255, 255, 255, 0.06);
   --card-text: #f1f5f9;
   --card-text-muted: #8892B0;
-  --card-secondary: var(--card-bg);
 
+  /* Glass dark — slightly more saturated in dark mode */
   --glass-dark-bg: rgba(26, 26, 46, 0.95);
+  --glass-dark-bg-hover: rgba(30, 30, 60, 0.95);
   --glass-dark-border: rgba(255, 255, 255, 0.1);
   --glass-dark-text: #f1f5f9;
   --glass-dark-muted: #8892B0;
@@ -98,18 +115,19 @@ body.dark-mode {
   --input-group-text: #8892B0;
   --input-group-border: rgba(255, 255, 255, 0.12);
 
-  --select-arrow: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23cbd5e1' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
-  --select-option-bg: #1e293b;
-  --select-option-text: #f1f5f9;
-
   --glass-bg: rgba(255, 255, 255, 0.04);
   --glass-border: rgba(255, 255, 255, 0.1);
 
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
   --shadow-glow: 0 0 30px rgba(108, 99, 255, 0.3);
+
+  --card-secondary: var(--card-bg);
 }
 
+/* ============================================================
+   BASE
+   ============================================================ */
 * {
   margin: 0;
   padding: 0;
@@ -131,12 +149,17 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* ============================================================
+   CUSTOM SCROLLBAR
+   ============================================================ */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--primary-dark); }
 
-/* glass-card-dark — escuro por padrão, vira card normal no modo claro */
+/* ============================================================
+   GLASS CARD DARK — always dark regardless of theme
+   ============================================================ */
 .glass-card-dark {
   background: var(--glass-dark-bg);
   backdrop-filter: blur(20px);
@@ -146,6 +169,7 @@ body {
   color: var(--glass-dark-text);
 }
 
+/* Ensure all text inside glass-card-dark inherits correctly */
 .glass-card-dark h1,
 .glass-card-dark h2,
 .glass-card-dark h3,
@@ -155,98 +179,9 @@ body {
   color: var(--glass-dark-text);
 }
 
-body.light-mode .glass-card-dark {
-  background: var(--card-bg);
-  border-color: var(--card-border);
-  color: var(--card-text);
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-}
-
-body.light-mode .glass-card-dark h1,
-body.light-mode .glass-card-dark h2,
-body.light-mode .glass-card-dark h3,
-body.light-mode .glass-card-dark h4,
-body.light-mode .glass-card-dark h5,
-body.light-mode .glass-card-dark h6 {
-  color: var(--card-text);
-}
-
-body.light-mode .glass-card-dark .text-white,
-body.light-mode .metric-card .text-white {
-  color: var(--card-text) !important;
-}
-
-body.light-mode .glass-card-dark .form-label {
-  color: var(--card-text);
-}
-
-body.light-mode .glass-card-dark .form-control-custom {
-  background-color: var(--input-bg);
-  border-color: var(--input-border);
-  color: var(--input-text);
-}
-
-body.light-mode .glass-card-dark .form-control-custom::placeholder {
-  color: var(--input-placeholder);
-}
-
-body.light-mode .glass-card-dark .form-control-custom:focus {
-  background-color: var(--input-bg);
-  color: var(--input-text);
-}
-
-body.light-mode .glass-card-dark select.form-control-custom,
-body.light-mode .glass-card-dark .form-select.form-control-custom {
-  background-color: var(--input-bg);
-  color: var(--input-text);
-}
-
-body.light-mode .glass-card-dark .form-control-custom option {
-  background-color: var(--select-option-bg);
-  color: var(--select-option-text);
-}
-
-body.light-mode .glass-card-dark .input-group-text {
-  background: var(--input-group-bg) !important;
-  border-color: var(--input-group-border) !important;
-  color: var(--input-group-text) !important;
-}
-
-body.light-mode .glass-card-dark .localizacao-select select,
-body.light-mode .glass-card-dark .localizacao-select .form-select {
-  background-color: var(--input-bg);
-  color: var(--input-text);
-  border-color: var(--input-border);
-}
-
-body.light-mode .glass-card-dark .localizacao-select select option {
-  background-color: var(--input-bg);
-  color: var(--input-text);
-}
-
-body.light-mode .glass-card-dark .table {
-  color: var(--card-text);
-}
-
-body.light-mode .glass-card-dark .table th {
-  color: var(--card-text-muted) !important;
-}
-
-body.light-mode .glass-card-dark table tr {
-  border-bottom-color: var(--border-subtle);
-}
-
-body.light-mode .glass-card-dark .btn-outline-light {
-  color: var(--card-text);
-  border-color: var(--border);
-}
-
-body.light-mode .glass-card-dark .btn-outline-light:hover {
-  background: var(--surface-raised);
-  color: var(--card-text);
-}
-
+/* ============================================================
+   GLASS CARD (light version)
+   ============================================================ */
 .glass-card {
   background: var(--glass-bg);
   backdrop-filter: blur(20px);
@@ -256,7 +191,9 @@ body.light-mode .glass-card-dark .btn-outline-light:hover {
   color: var(--text);
 }
 
-/* navbar */
+/* ============================================================
+   NAVBAR
+   ============================================================ */
 .navbar-glass {
   background: var(--navbar-bg);
   backdrop-filter: blur(20px);
@@ -272,7 +209,15 @@ body.light-mode .glass-card-dark .btn-outline-light:hover {
   color: var(--primary) !important;
 }
 
-/* sidebar */
+/* Navbar brand & toggler in light mode */
+body.light-mode .navbar-glass .navbar-brand,
+body.light-mode .navbar-glass .navbar-toggler-icon {
+  filter: none;
+}
+
+/* ============================================================
+   SIDEBAR
+   ============================================================ */
 .sidebar {
   width: 260px;
   min-height: 100vh;
@@ -286,10 +231,18 @@ body.light-mode .glass-card-dark .btn-outline-light:hover {
   border-right: 1px solid var(--sidebar-border);
 }
 
+.sidebar-collapsed {
+  transform: translateX(-260px);
+}
+
 .main-content {
   margin-left: 260px;
   min-height: 100vh;
   transition: margin-left 0.3s ease;
+}
+
+.main-content-full {
+  margin-left: 0;
 }
 
 @media (max-width: 768px) {
@@ -322,7 +275,9 @@ body.light-mode .glass-card-dark .btn-outline-light:hover {
   color: var(--primary);
 }
 
-/* metric card */
+/* ============================================================
+   METRIC CARD
+   ============================================================ */
 .metric-card {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
@@ -339,7 +294,34 @@ body.light-mode .glass-card-dark .btn-outline-light:hover {
   box-shadow: var(--shadow-md);
 }
 
-/* campaign card */
+/* Fix text-white inside metric-card in light mode */
+body.light-mode .metric-card .text-white,
+body.light-mode .metric-card .fw-black.text-white {
+  color: var(--card-text) !important;
+}
+
+/* Fix inline color #8892B0 — can't override inline but add utility */
+body.light-mode .metric-card-label {
+  color: var(--card-text-muted);
+}
+
+/* ============================================================
+   STAT CARD
+   ============================================================ */
+.stat-card {
+  border-radius: 16px;
+  padding: 1.5rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(108, 99, 255, 0.2);
+}
+
+/* ============================================================
+   CAMPAIGN CARD
+   ============================================================ */
 .campaign-card {
   border-radius: 16px;
   overflow: hidden;
@@ -360,12 +342,11 @@ body.light-mode .glass-card-dark .btn-outline-light:hover {
   object-fit: cover;
 }
 
-/* form controls */
-/* IMPORTANTE: usar sempre `background-color` aqui, nunca o shorthand `background`.
-   O shorthand reseta background-image/repeat/size/position e faz a seta do
-   <select> repetir lado a lado. */
+/* ============================================================
+   FORM CONTROLS — work in both modes and inside dark cards
+   ============================================================ */
 .form-control-custom {
-  background-color: var(--input-bg);
+  background: var(--input-bg);
   border: 1px solid var(--input-border);
   border-radius: 12px;
   padding: 0.75rem 1rem;
@@ -381,66 +362,44 @@ body.light-mode .glass-card-dark .btn-outline-light:hover {
 }
 
 .form-control-custom:focus {
-  background-color: var(--input-bg);
+  background: var(--input-bg);
   border-color: var(--input-border-focus);
   box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.15);
   color: var(--input-text);
   outline: none;
 }
 
-/* selects — uma única seta, alinhada à direita */
-select.form-control-custom,
+/* Selects */
 .form-control-custom.form-select,
-.localizacao-select select,
-.localizacao-select .form-select {
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
+select.form-control-custom {
   background-color: var(--input-bg);
   color: var(--input-text);
   cursor: pointer;
-  background-image: var(--select-arrow);
-  background-repeat: no-repeat;
-  background-position: right 1rem center;
-  background-size: 14px 10px;
-  padding-right: 2.75rem;
 }
 
-select.form-control-custom:disabled,
-.localizacao-select select:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
+/* Select options — sólido para garantir visibilidade no dropdown nativo */
 .form-control-custom option,
 select.form-control-custom option {
-  background-color: var(--select-option-bg);
-  color: var(--select-option-text);
+  background-color: #ffffff;
+  color: #1e293b;
 }
 
-/* textarea não é select: sem seta e com altura mínima decente */
-textarea.form-control-custom {
-  background-image: none;
-  padding-right: 1rem;
-  min-height: 84px;
-  resize: vertical;
+body.dark-mode .form-control-custom option,
+body.dark-mode select.form-control-custom option {
+  background-color: #1e293b;
+  color: #f1f5f9;
 }
 
-/* form controls inside glass-card-dark (dark styling) */
-.glass-card-dark {
-  --select-arrow: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23cbd5e1' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
-  --select-option-bg: #1e293b;
-  --select-option-text: #f1f5f9;
+/* Input group text */
+.input-group-custom .input-group-text {
+  background: var(--input-group-bg);
+  border: 1px solid var(--input-group-border);
+  color: var(--input-group-text);
 }
 
-body.light-mode .glass-card-dark {
-  --select-arrow: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
-  --select-option-bg: #ffffff;
-  --select-option-text: #1e293b;
-}
-
+/* Form controls inside glass-card-dark — always use dark-appropriate styling */
 .glass-card-dark .form-control-custom {
-  background-color: rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.07);
   border-color: rgba(255, 255, 255, 0.12);
   color: #f1f5f9;
 }
@@ -450,7 +409,7 @@ body.light-mode .glass-card-dark {
 }
 
 .glass-card-dark .form-control-custom:focus {
-  background-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.1);
   border-color: var(--primary);
   color: #f1f5f9;
 }
@@ -466,35 +425,42 @@ body.light-mode .glass-card-dark {
   color: #f1f5f9;
 }
 
+/* form-label inside dark cards */
 .glass-card-dark .form-label {
   color: var(--glass-dark-text);
 }
 
+/* ============================================================
+   INPUT GROUP — light mode fix
+   ============================================================ */
 body.light-mode .input-group .input-group-text {
   background: var(--input-group-bg);
   border-color: var(--input-group-border);
   color: var(--input-group-text);
 }
 
+/* Input group inside glass-card-dark — always dark style */
 .glass-card-dark .input-group-text {
   background: rgba(255, 255, 255, 0.06) !important;
   border-color: rgba(255, 255, 255, 0.12) !important;
   color: #94a3b8 !important;
 }
 
-/* localização select */
+/* ============================================================
+   LOCALIZAÇÃO SELECT — Estado e Cidade
+   ============================================================ */
 .localizacao-select select,
 .localizacao-select .form-select {
+  background-color: var(--input-bg);
+  color: var(--input-text);
   border: 1px solid var(--input-border);
   border-radius: 12px;
-  padding: 0.75rem 2.75rem 0.75rem 1rem;
-  font-size: 0.95rem;
-  width: 100%;
+  padding: 0.75rem 1rem;
 }
 
 .localizacao-select select option {
-  background-color: var(--select-option-bg);
-  color: var(--select-option-text);
+  background-color: var(--input-bg);
+  color: var(--input-text);
 }
 
 .localizacao-select select:focus {
@@ -503,6 +469,12 @@ body.light-mode .input-group .input-group-text {
   outline: none;
 }
 
+.localizacao-select select:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Localização inside glass-card-dark */
 .glass-card-dark .localizacao-select select,
 .glass-card-dark .localizacao-select .form-select {
   background-color: rgba(255, 255, 255, 0.07);
@@ -515,7 +487,9 @@ body.light-mode .input-group .input-group-text {
   color: #f1f5f9;
 }
 
-/* tables */
+/* ============================================================
+   TABLES — light mode
+   ============================================================ */
 body.light-mode .table {
   color: var(--card-text);
 }
@@ -525,6 +499,7 @@ body.light-mode .table-borderless td {
   color: var(--card-text);
 }
 
+/* Fix table header in dark glass cards */
 .glass-card-dark .table {
   color: var(--glass-dark-text);
 }
@@ -533,7 +508,9 @@ body.light-mode .table-borderless td {
   color: var(--glass-dark-muted) !important;
 }
 
-/* progress bar */
+/* ============================================================
+   PROGRESS BAR
+   ============================================================ */
 .progress-custom {
   height: 8px;
   border-radius: 4px;
@@ -545,20 +522,24 @@ body.light-mode .table-borderless td {
   background: linear-gradient(90deg, var(--primary), var(--accent));
 }
 
-/* buttons */
+/* ============================================================
+   BUTTONS
+   ============================================================ */
 .btn-primary-custom {
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  background: var(--primary);
   border: none;
   color: #ffffff !important;
   font-weight: 600;
-  border-radius: 12px;
+  border-radius: 10px;
   padding: 0.625rem 1.5rem;
   transition: all 0.2s ease;
+  letter-spacing: 0.01em;
 }
 
 .btn-primary-custom:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(108, 99, 255, 0.4);
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(108, 99, 255, 0.35);
   color: #ffffff !important;
 }
 
@@ -567,9 +548,14 @@ body.light-mode .table-borderless td {
   transform: none;
 }
 
-/* gradient utilities */
+/* ============================================================
+   GRADIENT TEXT & BACKGROUNDS
+   ============================================================ */
 .gradient-text {
-  color: var(--primary);
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .bg-gradient-primary {
@@ -580,9 +566,21 @@ body.light-mode .table-borderless td {
   background: linear-gradient(135deg, #0F0F1A 0%, #1A1A2E 50%, #16213E 100%);
 }
 
-/* hero */
+/* ============================================================
+   GLOW EFFECTS
+   ============================================================ */
+.glow {
+  box-shadow: var(--shadow-glow);
+}
+
+.glow-text {
+  text-shadow: 0 0 20px rgba(108, 99, 255, 0.5);
+}
+
+/* ============================================================
+   HERO SECTION
+   ============================================================ */
 .hero-section {
-  min-height: 100vh;
   display: flex;
   align-items: center;
   position: relative;
@@ -590,20 +588,12 @@ body.light-mode .table-borderless td {
 }
 
 .hero-section::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse at 30% 50%, rgba(108, 99, 255, 0.15) 0%, transparent 60%),
-              radial-gradient(ellipse at 70% 80%, rgba(255, 101, 132, 0.1) 0%, transparent 60%);
-  pointer-events: none;
+  display: none;
 }
 
-body.dark-mode .hero-section::before {
-  background: radial-gradient(ellipse at 30% 50%, rgba(108, 99, 255, 0.3) 0%, transparent 60%),
-              radial-gradient(ellipse at 70% 80%, rgba(255, 101, 132, 0.2) 0%, transparent 60%);
-}
-
-/* orbs */
+/* ============================================================
+   FLOATING ORBS
+   ============================================================ */
 .orb {
   position: absolute;
   border-radius: 50%;
@@ -617,7 +607,9 @@ body.dark-mode .orb {
   opacity: 0.4;
 }
 
-/* animations */
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -646,8 +638,17 @@ body.dark-mode .orb {
 .animate-fadeInUp { animation: fadeInUp 0.5s ease forwards; }
 .animate-fadeIn   { animation: fadeIn 0.3s ease forwards; }
 
-/* bi-paw-fill — não existe no Bootstrap Icons 1.13.1, usa SVG via mask */
-.bi-paw-fill::before { content: ''; }
+/* ============================================================
+   SKELETON
+   ============================================================ */
+
+/* ============================================================
+   CUSTOM ICONS — bi-paw-fill não existe no Bootstrap Icons 1.13.1
+   Usa mask-image SVG para herdar currentColor como qualquer BI
+   ============================================================ */
+.bi-paw-fill::before {
+  content: '';
+}
 
 .bi-paw-fill {
   display: inline-block;
@@ -662,7 +663,6 @@ body.dark-mode .orb {
   mask-size: 100% 100%;
   vertical-align: -0.125em;
 }
-
 .skeleton {
   background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
   background-size: 1000px 100%;
@@ -675,9 +675,24 @@ body.dark-mode .skeleton {
   background-size: 1000px 100%;
 }
 
+/* ============================================================
+   SECTION SPACING
+   ============================================================ */
 .section    { padding: 6rem 0; }
 .section-sm { padding: 4rem 0; }
 
+/* ============================================================
+   IMPACT STATS
+   ============================================================ */
+.impact-number {
+  font-size: 3rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
 .footer-custom {
   background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.04));
   border-top: 1px solid var(--border);
@@ -688,188 +703,54 @@ body.dark-mode .footer-custom {
   background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.4));
 }
 
+/* ============================================================
+   DASHBOARD HEADER
+   ============================================================ */
 .dashboard-header {
   padding: 2rem 0 1rem;
 }
 
+/* ============================================================
+   ALERT component
+   ============================================================ */
 .alert {
   border-radius: 12px;
 }
 
-/* modal */
-.modal-content {
-  border-radius: 20px;
-  overflow: hidden;
-}
-
-/* cabeçalho do modal — azul do sistema */
-.modal-header-gradient {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-  padding: 1.25rem 1.5rem;
-  border: 0;
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-}
-
-.modal-header-gradient .modal-title {
-  color: #ffffff;
-  font-size: 1.05rem;
-  line-height: 1.3;
-  margin: 0;
-}
-
-.modal-header-gradient .modal-subtitle {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 0.8rem;
-  margin: 0.25rem 0 0;
-  line-height: 1.3;
-  overflow-wrap: anywhere;
-}
-
-.modal-header-gradient .modal-close {
-  background: transparent;
-  border: 0;
-  color: #ffffff;
-  opacity: 0.85;
-  line-height: 1;
-  padding: 0.25rem;
-  margin-left: auto;
-  flex-shrink: 0;
-  transition: opacity 0.2s ease;
-}
-
-.modal-header-gradient .modal-close:hover {
-  opacity: 1;
-}
-
+/* ============================================================
+   MODAL improvements
+   ============================================================ */
 body.light-mode .modal-content {
   background: var(--card-bg);
   color: var(--card-text);
   border: 1px solid var(--card-border);
 }
 
-body.light-mode .modal-header,
+body.light-mode .modal-header {
+  border-color: var(--border);
+}
+
 body.light-mode .modal-footer {
   border-color: var(--border);
 }
 
-body.dark-mode .modal-content {
-  background: var(--surface);
-  color: var(--text);
-  border: 1px solid var(--border);
-}
+/* ============================================================
+   BOOTSTRAP OVERRIDES — ensure proper theming
+   ============================================================ */
 
-body.dark-mode .modal-header,
-body.dark-mode .modal-footer {
-  border-color: var(--border);
-}
-
-body.dark-mode .modal-content {
-  --select-arrow: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23e2e8f0' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
-  --select-option-bg: #1e293b;
-  --select-option-text: #f1f5f9;
-}
-
-body.dark-mode .modal-content .form-control-custom,
-body.dark-mode .modal-content .form-select.form-control-custom,
-body.dark-mode .modal-content select.form-control-custom {
-  background-color: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.15);
-  color: #f1f5f9;
-}
-
-body.dark-mode .modal-content .form-control-custom::placeholder {
-  color: rgba(255, 255, 255, 0.35);
-}
-
-body.dark-mode .modal-content .form-control-custom option,
-body.dark-mode .modal-content select.form-control-custom option {
-  background-color: #1e293b;
-  color: #f1f5f9;
-}
-
-body.dark-mode .modal-content .form-label {
-  color: #f1f5f9;
-}
-
-.modal-content .form-label {
-  font-size: 0.85rem;
-  margin-bottom: 0.4rem;
-}
-
-.modal-item-box {
-  background: rgba(108, 99, 255, 0.06);
-  border: 1px solid rgba(108, 99, 255, 0.22);
-}
-
-body.dark-mode .modal-item-box {
-  background: rgba(108, 99, 255, 0.1);
-  border-color: rgba(108, 99, 255, 0.3);
-}
-
-/* contador do PIX */
-.pix-timer {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.6rem 1rem;
-  margin-bottom: 1rem;
-  border-radius: 12px;
-  font-size: 0.875rem;
-  background: rgba(108, 99, 255, 0.1);
-  border: 1px solid rgba(108, 99, 255, 0.3);
-  color: var(--primary);
-}
-
-.pix-timer strong {
-  font-variant-numeric: tabular-nums;
-  font-size: 1rem;
-  letter-spacing: 0.5px;
-}
-
-.pix-timer[data-urgente='true'] {
-  background: rgba(255, 101, 132, 0.1);
-  border-color: rgba(255, 101, 132, 0.4);
-  color: var(--secondary);
-  animation: pulse 1.2s ease-in-out infinite;
-}
-
-.pix-aviso {
-  padding: 0.75rem 1rem;
-  margin-bottom: 1rem;
-  border-radius: 12px;
-  font-size: 0.85rem;
-  background: rgba(255, 209, 102, 0.1);
-  border: 1px solid rgba(255, 209, 102, 0.4);
-  color: #FFD166;
-}
-
-.modal-item-row {
-  background: var(--surface-raised);
-  border: 1px solid var(--border);
-}
-
-body.dark-mode .modal-item-row {
-  background: rgba(255, 255, 255, 0.04);
-}
-
-/* bootstrap overrides */
+/* text-muted inherits our design token */
 .text-muted {
   color: var(--text-muted) !important;
 }
 
-.text-card {
-  color: var(--card-text) !important;
-}
-
+/* Cards inside light mode pages */
 body.light-mode .card {
   background: var(--card-bg);
   border-color: var(--card-border);
   color: var(--card-text);
 }
 
+/* Outline buttons on dark backgrounds */
 .glass-card-dark .btn-outline-light {
   color: #f1f5f9;
   border-color: rgba(255, 255, 255, 0.2);
@@ -878,4 +759,217 @@ body.light-mode .card {
 .glass-card-dark .btn-outline-light:hover {
   background: rgba(255, 255, 255, 0.1);
   color: #ffffff;
+}
+
+/* ============================================================
+   GLASS CARD DARK — light mode override
+   Makes dark cards adapt to the light theme so nothing stays "stuck" black
+   ============================================================ */
+body.light-mode .glass-card-dark {
+  background: var(--card-bg) !important;
+  border-color: var(--card-border) !important;
+  color: var(--card-text) !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+body.light-mode .glass-card-dark h1,
+body.light-mode .glass-card-dark h2,
+body.light-mode .glass-card-dark h3,
+body.light-mode .glass-card-dark h4,
+body.light-mode .glass-card-dark h5,
+body.light-mode .glass-card-dark h6 {
+  color: var(--card-text) !important;
+}
+
+body.light-mode .glass-card-dark .text-white {
+  color: var(--card-text) !important;
+}
+
+body.light-mode .glass-card-dark .text-muted {
+  color: var(--text-muted) !important;
+}
+
+body.light-mode .glass-card-dark .table th,
+body.light-mode .glass-card-dark .table td {
+  color: var(--card-text) !important;
+  border-color: var(--border) !important;
+}
+
+body.light-mode .glass-card-dark .input-group-text {
+  background: var(--input-group-bg) !important;
+  border-color: var(--input-group-border) !important;
+  color: var(--input-group-text) !important;
+}
+
+/* ============================================================
+   CHART CARD — always dark, needed for recharts grid/tick rendering
+   Separate from glass-card-dark so light-mode override doesn't apply
+   ============================================================ */
+.chart-card {
+  background: var(--glass-dark-bg);
+  border: 1px solid var(--glass-dark-border);
+  border-radius: 16px;
+  color: var(--glass-dark-text);
+  padding: 1.5rem;
+}
+
+.chart-card h1, .chart-card h2, .chart-card h3,
+.chart-card h4, .chart-card h5, .chart-card h6,
+.chart-card .text-white {
+  color: var(--glass-dark-text) !important;
+}
+
+/* ============================================================
+   SURFACE CARD — theme-aware card (light in light mode, dark in dark mode)
+   ============================================================ */
+.surface-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  color: var(--card-text);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+}
+
+.surface-card-hover:hover {
+  border-color: var(--primary);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
+/* ============================================================
+   CATEGORY CHIP — theme-aware clickable chip
+   ============================================================ */
+.category-chip {
+  display: block;
+  background: var(--card-bg);
+  border: 1.5px solid var(--card-border);
+  border-radius: 16px;
+  padding: 1.5rem 0.75rem;
+  text-align: center;
+  text-decoration: none !important;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  color: var(--card-text) !important;
+}
+
+.category-chip:hover {
+  border-color: var(--primary);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  color: var(--card-text) !important;
+}
+
+/* ============================================================
+   STEP CARD — for "how it works" sections
+   ============================================================ */
+.step-card {
+  background: var(--card-bg);
+  border: 1.5px solid var(--card-border);
+  border-radius: 20px;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  height: 100%;
+  color: var(--card-text);
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.step-card:hover {
+  border-color: var(--primary);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
+.step-number-bg {
+  font-size: 5rem;
+  font-weight: 900;
+  line-height: 1;
+  position: absolute;
+  top: 0.25rem;
+  right: 1rem;
+  opacity: 0.05;
+  color: var(--primary);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ============================================================
+   SECTION WRAPPERS — visual rhythm
+   ============================================================ */
+.section-alt {
+  background: var(--surface-raised);
+}
+
+.section-dark-wrapper {
+  background: linear-gradient(135deg, #0d1117 0%, #1a1a2e 60%, #16213e 100%);
+}
+
+/* ============================================================
+   LIVE INDICATOR
+   ============================================================ */
+.live-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10B981;
+  animation: pulse-dot 2s ease-in-out infinite;
+  margin-right: 5px;
+  vertical-align: middle;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.55; transform: scale(1.4); }
+}
+
+/* ============================================================
+   LABEL CAPS — small uppercase label
+   ============================================================ */
+.label-caps {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* ============================================================
+   NAVBAR — active link indicator
+   ============================================================ */
+.navbar-glass .nav-link-active {
+  color: var(--primary) !important;
+  font-weight: 600;
+}
+
+.navbar-glass .nav-link-active::after {
+  content: '';
+  display: block;
+  height: 2px;
+  width: 100%;
+  background: var(--primary);
+  border-radius: 1px;
+  margin-top: 2px;
+}
+
+/* ============================================================
+   UTILITY — text color helpers using design tokens
+   ============================================================ */
+.text-theme-muted {
+  color: var(--text-muted) !important;
+}
+
+.text-card {
+  color: var(--card-text) !important;
+}
+
+.text-glass {
+  color: var(--glass-dark-text) !important;
+}
+
+.text-glass-muted {
+  color: var(--glass-dark-muted) !important;
 }

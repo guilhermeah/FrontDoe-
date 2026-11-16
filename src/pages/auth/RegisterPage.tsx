@@ -1,29 +1,41 @@
-﻿import { useState } from 'react'
-import { Link, useNavigate, Navigate } from 'react-router-dom'
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { useAuth } from '../../contexts/AuthContext'
 import { RegisterRequest, UserRole } from '../../types/auth.types'
 import { Alert } from '../../components/common/Alert'
-
-const ROLE_PATHS: Record<string, string> = {
-  ADMIN: '/admin/dashboard',
-  ONG: '/ong/dashboard',
-  DOADOR: '/doador/dashboard',
-}
 
 const roles: { value: UserRole; label: string; icon: string; desc: string }[] = [
   { value: 'DOADOR', label: 'Doador', icon: 'bi-heart', desc: 'Quero fazer doações' },
   { value: 'ONG', label: 'ONG', icon: 'bi-building', desc: 'Represento uma ONG' },
 ]
 
-function maskCPFCNPJ(value: string): string {
-  const digits = value.replace(/\D/g, '').slice(0, 14)
-  if (digits.length <= 11) {
-    return digits
-      .replace(/^(\d{3})(\d)/, '$1.$2')
-      .replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
-      .replace(/\.(\d{3})(\d)/, '.$1-$2')
+function validateCNPJ(cnpj: string): boolean {
+  const digits = cnpj.replace(/[^\d]/g, '')
+  if (digits.length !== 14) return false
+  if (/^(\d)\1+$/.test(digits)) return false
+
+  let sum = 0
+  let pos = 5
+  for (let i = 0; i < 12; i++) {
+    sum += parseInt(digits[i]) * pos--
+    if (pos < 2) pos = 9
   }
+  let check = sum % 11 < 2 ? 0 : 11 - (sum % 11)
+  if (check !== parseInt(digits[12])) return false
+
+  sum = 0
+  pos = 6
+  for (let i = 0; i < 13; i++) {
+    sum += parseInt(digits[i]) * pos--
+    if (pos < 2) pos = 9
+  }
+  check = sum % 11 < 2 ? 0 : 11 - (sum % 11)
+  return check === parseInt(digits[13])
+}
+
+function maskCNPJ(value: string): string {
+  const digits = value.replace(/\D/g, '').slice(0, 14)
   return digits
     .replace(/^(\d{2})(\d)/, '$1.$2')
     .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
@@ -31,35 +43,52 @@ function maskCPFCNPJ(value: string): string {
     .replace(/(\d{4})(\d)/, '$1-$2')
 }
 
-function validateCPFCNPJ(value: string): boolean {
-  const digits = (value ?? '').replace(/\D/g, '')
-  return digits.length === 11 || digits.length === 14
+function maskPhone(value: string): string {
+  const digits = value.replace(/\D/g, '').slice(0, 11)
+  if (digits.length <= 10) {
+    return digits
+      .replace(/^(\d{2})(\d)/, '($1) $2')
+      .replace(/(\d{4})(\d)/, '$1-$2')
+  }
+  return digits
+    .replace(/^(\d{2})(\d)/, '($1) $2')
+    .replace(/(\d{5})(\d)/, '$1-$2')
+}
+
+function validatePhone(value: string): boolean {
+  const digits = value.replace(/\D/g, '')
+  return digits.length === 10 || digits.length === 11
 }
 
 export function RegisterPage() {
-  const { register: registerUser, user } = useAuth()
+  const { register: registerUser } = useAuth()
   const navigate = useNavigate()
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [selectedRole, setSelectedRole] = useState<UserRole>('DOADOR')
   const [showPassword, setShowPassword] = useState(false)
-  const [cpfCnpjValue, setCpfCnpjValue] = useState('')
+  const [cnpjValue, setCnpjValue] = useState('')
+  const [phoneValue, setPhoneValue] = useState('')
 
   const { register, handleSubmit, setValue, formState: { errors } } = useForm<RegisterRequest>({
     defaultValues: { role: 'DOADOR' },
   })
-
-  if (user) return <Navigate to={ROLE_PATHS[user.role] || '/'} replace />
 
   const handleRoleSelect = (role: UserRole) => {
     setSelectedRole(role)
     setValue('role', role)
   }
 
-  const handleCpfCnpjChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const masked = maskCPFCNPJ(e.target.value)
-    setCpfCnpjValue(masked)
-    setValue('cpfCnpj', masked)
+  const handleCNPJChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const masked = maskCNPJ(e.target.value)
+    setCnpjValue(masked)
+    setValue('cnpj', masked)
+  }
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const masked = maskPhone(e.target.value)
+    setPhoneValue(masked)
+    setValue('telefone', masked)
   }
 
   const onSubmit = async (data: RegisterRequest) => {
@@ -67,10 +96,21 @@ export function RegisterPage() {
     setError(null)
     try {
       await registerUser(data)
-      navigate(ROLE_PATHS[data.role] || '/', { replace: true })
+      const paths: Record<string, string> = {
+        ADMIN: '/admin/dashboard',
+        ONG: '/ong/dashboard',
+        DOADOR: '/doador/dashboard',
+      }
+      navigate(paths[data.role] || '/')
     } catch (err: any) {
-      const d = err?.response?.data
-      setError(d?.message || d?.mensagem || err?.message || 'Erro ao criar conta. Tente novamente.')
+      const msg =
+        err?.response?.data?.message ||
+        err?.response?.data?.erro ||
+        err?.response?.data?.error ||
+        (typeof err?.response?.data === 'string' ? err.response.data : null) ||
+        err?.message ||
+        'Erro ao criar conta. Tente novamente.'
+      setError(msg)
     } finally {
       setIsLoading(false)
     }
@@ -96,7 +136,7 @@ export function RegisterPage() {
                   <span className="fw-bold fs-4 gradient-text">Doe+</span>
                 </Link>
                 <h4 className="text-white fw-bold">Criar conta</h4>
-                <p style={{ color: 'var(--text-muted)' }}>Junte-se a milhares de pessoas transformando vidas</p>
+                <p style={{ color: '#8892B0' }}>Junte-se a milhares de pessoas transformando vidas</p>
               </div>
 
               {error && <Alert type="danger" message={error} onClose={() => setError(null)} />}
@@ -105,7 +145,7 @@ export function RegisterPage() {
                 <label className="form-label text-white fw-semibold mb-3">Tipo de conta</label>
                 <div className="row g-2">
                   {roles.map((r) => (
-                    <div key={r.value} className="col-6">
+                    <div key={r.value} className="col-4">
                       <button
                         type="button"
                         className="btn w-100 h-100 text-center py-3"
@@ -114,7 +154,7 @@ export function RegisterPage() {
                           borderRadius: 12,
                           border: `2px solid ${selectedRole === r.value ? '#6C63FF' : 'rgba(255,255,255,0.1)'}`,
                           background: selectedRole === r.value ? 'rgba(108,99,255,0.15)' : 'rgba(255,255,255,0.03)',
-                          color: selectedRole === r.value ? '#6C63FF' : 'var(--text-muted)',
+                          color: selectedRole === r.value ? '#6C63FF' : '#8892B0',
                           transition: 'all 0.2s',
                         }}
                       >
@@ -131,9 +171,7 @@ export function RegisterPage() {
               <form onSubmit={handleSubmit(onSubmit)}>
                 <div className="row g-3">
                   <div className="col-12">
-                    <label className="form-label text-white fw-semibold">
-                      {selectedRole === 'ONG' ? 'Nome do gestor' : 'Nome completo'}
-                    </label>
+                    <label className="form-label text-white fw-semibold">Nome completo</label>
                     <input
                       {...register('nome', {
                         required: 'Nome é obrigatório',
@@ -162,23 +200,39 @@ export function RegisterPage() {
                     {errors.email && <div className="text-danger small mt-1">{errors.email.message}</div>}
                   </div>
 
-                  {selectedRole === 'DOADOR' && (
+                  {selectedRole === 'ONG' && (
                     <div className="col-12">
-                      <label className="form-label text-white fw-semibold">CPF / CNPJ</label>
+                      <label className="form-label text-white fw-semibold">CNPJ</label>
                       <input
-                        {...register('cpfCnpj', {
-                          required: 'CPF ou CNPJ é obrigatório',
-                          validate: (v) => validateCPFCNPJ(v ?? '') || 'CPF (11 dígitos) ou CNPJ (14 dígitos) inválido',
+                        {...register('cnpj', {
+                          required: 'CNPJ é obrigatório para ONG',
+                          validate: (v) => validateCNPJ(v ?? '') || 'CNPJ inválido',
                         })}
-                        value={cpfCnpjValue}
-                        onChange={handleCpfCnpjChange}
+                        value={cnpjValue}
+                        onChange={handleCNPJChange}
                         className="form-control form-control-custom"
-                        placeholder="000.000.000-00 ou 00.000.000/0000-00"
+                        placeholder="00.000.000/0000-00"
                         maxLength={18}
                       />
-                      {errors.cpfCnpj && <div className="text-danger small mt-1">{errors.cpfCnpj.message}</div>}
+                      {errors.cnpj && <div className="text-danger small mt-1">{errors.cnpj.message}</div>}
                     </div>
                   )}
+
+                  <div className="col-12">
+                    <label className="form-label text-white fw-semibold">Telefone</label>
+                    <input
+                      {...register('telefone', {
+                        required: 'Telefone é obrigatório',
+                        validate: (v) => validatePhone(v ?? '') || 'Telefone inválido. Use o formato (00) 00000-0000',
+                      })}
+                      value={phoneValue}
+                      onChange={handlePhoneChange}
+                      className="form-control form-control-custom"
+                      placeholder="(00) 00000-0000"
+                      maxLength={15}
+                    />
+                    {errors.telefone && <div className="text-danger small mt-1">{errors.telefone.message}</div>}
+                  </div>
 
                   <div className="col-12">
                     <label className="form-label text-white fw-semibold">Senha</label>
@@ -186,14 +240,7 @@ export function RegisterPage() {
                       <input
                         {...register('senha', {
                           required: 'Senha é obrigatória',
-                          validate: (v) => {
-                            if (v.length < 8) return 'Mínimo 8 caracteres'
-                            if (!/[A-Z]/.test(v)) return 'Precisa de ao menos uma letra maiúscula'
-                            if (!/[a-z]/.test(v)) return 'Precisa de ao menos uma letra minúscula'
-                            if (!/\d/.test(v)) return 'Precisa de ao menos um número'
-                            if (!/[@#$%^&+=!*()_\-]/.test(v)) return 'Precisa de ao menos um símbolo especial (@#$%...)'
-                            return true
-                          },
+                          minLength: { value: 6, message: 'Mínimo 6 caracteres' },
                         })}
                         type={showPassword ? 'text' : 'password'}
                         className="form-control form-control-custom"
@@ -203,7 +250,7 @@ export function RegisterPage() {
                       <button
                         type="button"
                         className="input-group-text border-0"
-                        style={{ background: 'rgba(108,99,255,0.1)', border: '1px solid var(--input-group-border)', cursor: 'pointer', color: 'var(--text-muted)' }}
+                        style={{ background: 'rgba(108,99,255,0.1)', border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer', color: '#8892B0' }}
                         onClick={() => setShowPassword((v) => !v)}
                       >
                         <i className={`bi ${showPassword ? 'bi-eye-slash' : 'bi-eye'}`} />
@@ -211,17 +258,6 @@ export function RegisterPage() {
                     </div>
                     {errors.senha && <div className="text-danger small mt-1">{errors.senha.message}</div>}
                   </div>
-
-                  {selectedRole === 'ONG' && (
-                    <div className="col-12">
-                      <div className="p-3 rounded-3" style={{ background: 'rgba(108,99,255,0.08)', border: '1px solid rgba(108,99,255,0.2)' }}>
-                        <i className="bi bi-info-circle me-2" style={{ color: '#6C63FF' }} />
-                        <small style={{ color: 'var(--text-muted)' }}>
-                          Sua conta será criada como gestora de ONG. A vinculação com a ONG será feita pelo administrador.
-                        </small>
-                      </div>
-                    </div>
-                  )}
 
                   <div className="col-12 pt-2">
                     <button
@@ -239,7 +275,7 @@ export function RegisterPage() {
                 </div>
               </form>
 
-              <p className="text-center mt-3 mb-0" style={{ color: 'var(--text-muted)' }}>
+              <p className="text-center mt-3 mb-0" style={{ color: '#8892B0' }}>
                 Já tem conta?{' '}
                 <Link to="/login" className="text-decoration-none fw-semibold" style={{ color: '#6C63FF' }}>
                   Entrar

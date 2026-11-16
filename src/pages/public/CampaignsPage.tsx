@@ -1,15 +1,14 @@
-﻿import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Navbar } from '../../components/layout/Navbar'
 import { Footer } from '../../components/layout/Footer'
 import { CampaignCard } from '../../components/campaign/CampaignCard'
 import { SkeletonCard } from '../../components/common/SkeletonLoader'
 import { useCampaigns } from '../../hooks/useCampaigns'
-import { Campanha, CampaignCategory, CampaignStatus } from '../../types/campaign.types'
-import { CampanhaService } from '../../services/CampanhaService'
+import { CampaignCategory, CampaignStatus } from '../../types/campaign.types'
 
 const categories: { value: string; label: string }[] = [
-  { value: '', label: 'Todas' },
+  { value: '', label: 'Todas as categorias' },
   { value: 'SAUDE', label: 'Saúde' },
   { value: 'EDUCACAO', label: 'Educação' },
   { value: 'MEIO_AMBIENTE', label: 'Meio Ambiente' },
@@ -25,29 +24,12 @@ export function CampaignsPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const [search, setSearch] = useState('')
   const [categoria, setCategoria] = useState<string>(searchParams.get('categoria') || '')
-  const [status, setStatus] = useState<string>(searchParams.get('ong') ? '' : 'ATIVA')
+  const [status, setStatus] = useState<string>('ATIVA')
 
-  const ongId = searchParams.get('ong')
-
-  const [ongCampanhas, setOngCampanhas] = useState<Campanha[]>([])
-  const [ongLoading, setOngLoading] = useState(false)
-
-  useEffect(() => {
-    if (!ongId) return
-    setOngLoading(true)
-    CampanhaService.listarPorOng(Number(ongId))
-      .then(setOngCampanhas)
-      .catch(() => setOngCampanhas([]))
-      .finally(() => setOngLoading(false))
-  }, [ongId])
-
-  const { campanhas: allCampanhas, isLoading: allLoading } = useCampaigns({
+  const { campanhas, isLoading } = useCampaigns({
     categoria: categoria as CampaignCategory || undefined,
     status: status as CampaignStatus || undefined,
   })
-
-  const campanhas = ongId ? ongCampanhas : allCampanhas
-  const isLoading = ongId ? ongLoading : allLoading
 
   const filtered = campanhas.filter((c) => {
     if (status && c.status !== status) return false
@@ -61,17 +43,19 @@ export function CampaignsPage() {
       <Navbar />
       <div style={{ paddingTop: 80 }}>
         <div className="container py-5">
+
           <div className="text-center mb-5">
+            <span className="label-caps d-block mb-2">Explorar</span>
             <h1 className="fw-black display-5 mb-2">Campanhas <span className="gradient-text">ativas</span></h1>
             <p style={{ color: 'var(--text-muted)' }}>Encontre uma causa para apoiar</p>
           </div>
 
           {/* Filters */}
-          <div className="glass-card-dark p-4 mb-5">
+          <div className="surface-card p-4 mb-5">
             <div className="row g-3 align-items-center">
               <div className="col-md-5">
                 <div className="input-group">
-                  <span className="input-group-text" style={{ background: 'var(--input-group-bg)', border: '1px solid var(--input-group-border)', color: 'var(--text-muted)' }}>
+                  <span className="input-group-text" style={{ background: 'var(--input-group-bg)', border: '1px solid var(--input-group-border)', color: 'var(--input-group-text)', borderRight: 'none' }}>
                     <i className="bi bi-search" />
                   </span>
                   <input
@@ -88,13 +72,7 @@ export function CampaignsPage() {
                 <select
                   className="form-select form-control-custom"
                   value={categoria}
-                  onChange={(e) => {
-                    setCategoria(e.target.value)
-                    const params: Record<string, string> = {}
-                    if (e.target.value) params.categoria = e.target.value
-                    if (ongId) params.ong = ongId
-                    setSearchParams(params)
-                  }}
+                  onChange={(e) => { setCategoria(e.target.value); setSearchParams(e.target.value ? { categoria: e.target.value } : {}) }}
                 >
                   {categories.map((c) => (
                     <option key={c.value} value={c.value}>{c.label}</option>
@@ -115,24 +93,6 @@ export function CampaignsPage() {
               </div>
             </div>
           </div>
-
-          {/* ONG filter indicator */}
-          {ongId && (
-            <div className="d-flex align-items-center gap-2 mb-3">
-              <span className="badge rounded-pill px-3 py-2" style={{ background: 'rgba(108,99,255,0.15)', color: '#6C63FF', border: '1px solid rgba(108,99,255,0.3)', fontSize: '0.85rem' }}>
-                <i className="bi bi-building me-2" />
-                Campanhas desta ONG
-              </span>
-              <button
-                className="btn btn-sm"
-                style={{ color: 'var(--text-muted)', background: 'none', border: 'none', fontSize: '0.8rem' }}
-                onClick={() => setSearchParams({})}
-              >
-                <i className="bi bi-x-circle me-1" />
-                Ver todas
-              </button>
-            </div>
-          )}
 
           {/* Results count */}
           {!isLoading && (
@@ -161,6 +121,7 @@ export function CampaignsPage() {
               )
             }
           </div>
+
         </div>
       </div>
       <Footer />

@@ -1,12 +1,6 @@
 import axios from 'axios'
 
-export const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
-
-export function prefixUrl(url: string | undefined | null): string | undefined {
-  if (!url) return undefined
-  if (url.startsWith('http')) return url
-  return BASE_URL + url
-}
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
 
 export const api = axios.create({
   baseURL: BASE_URL,
@@ -26,6 +20,11 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('@doemais:token')
+      localStorage.removeItem('@doemais:user')
+      window.location.href = '/login'
+    }
     return Promise.reject(error)
   }
 )

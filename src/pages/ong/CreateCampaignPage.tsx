@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { DashboardLayout } from '../../components/layout/DashboardLayout'
 import { CampaignForm } from '../../components/campaign/CampaignForm'
@@ -11,25 +11,15 @@ export function CreateCampaignPage() {
   const { user } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const pendingImageFile = useRef<File | null>(null)
 
   const handleSubmit = async (data: CampanhaRequest) => {
-    if (!user?.id) {
-      setError('Sessão inválida. Faça logout e login novamente.')
-      return
-    }
     setIsLoading(true)
     setError(null)
     try {
-      const campanha = await CampanhaService.criar({ ...data, idOng: user.idOng ?? user.id })
-      if (pendingImageFile.current) {
-        await CampanhaService.uploadImagem(campanha.id, pendingImageFile.current)
-      }
+      await CampanhaService.criar({ ...data, idOng: user?.id })
       navigate('/ong/campanhas')
     } catch (err: any) {
-      console.log('[CreateCampaignPage] erro:', err?.response?.status, err?.response?.data)
-      const msg = err?.response?.data?.message || err?.response?.data?.error || JSON.stringify(err?.response?.data) || 'Erro ao criar campanha'
-      setError(msg)
+      setError(err?.response?.data?.message || 'Erro ao criar campanha')
     } finally {
       setIsLoading(false)
     }
@@ -50,7 +40,6 @@ export function CreateCampaignPage() {
               isLoading={isLoading}
               error={error}
               submitLabel="Criar Campanha"
-              onImageFile={(file) => { pendingImageFile.current = file }}
             />
           </div>
         </div>
